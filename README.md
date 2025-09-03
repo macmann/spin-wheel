@@ -23,6 +23,13 @@ npm start
 npm run gen -- "Write a Python function that checks if a string is a palindrome."
 ```
 
+## Spin Wheel UI
+
+Static pages for a 10‑segment spin wheel and admin panel live in `public/`.
+
+- Open `public/index.html` to view and spin the wheel.
+- Use the “Go to Admin Panel” button to edit segment labels (stored in `localStorage`).
+
 ## Files
 ```
 codex-project/
