@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename);
 const dataDir = path.join(__dirname, '../data');
 const configPath = path.join(dataDir, 'config.json');
 const logsPath = path.join(dataDir, 'logs.json');
+const usersPath = path.join(dataDir, 'users.json');
 
 function readJSON(p) {
   return JSON.parse(fs.readFileSync(p, 'utf-8'));
@@ -39,7 +40,34 @@ app.post('/api/logs', (req, res) => {
   const logs = readJSON(logsPath);
   logs.push({ ...req.body, timestamp: new Date().toISOString() });
   writeJSON(logsPath, logs);
-  res.json({ status: 'logged' });
+
+  const { userId, rewardType } = req.body;
+  const config = readJSON(configPath);
+  const seg = config.rewardSegments.find(s => s.label === rewardType);
+  const value = seg?.value || 0;
+  const users = readJSON(usersPath);
+  const current = users[userId]?.points || 0;
+  users[userId] = { points: current + value };
+  writeJSON(usersPath, users);
+
+  res.json({ status: 'logged', points: users[userId].points });
+});
+
+// User balance
+app.get('/api/users/:id', (req, res) => {
+  const users = readJSON(usersPath);
+  const userId = req.params.id;
+  res.json({ userId, points: users[userId]?.points || 0 });
+});
+
+// Leaderboard
+app.get('/api/leaderboard', (req, res) => {
+  const users = readJSON(usersPath);
+  const board = Object.entries(users)
+    .map(([userId, { points }]) => ({ userId, points }))
+    .sort((a, b) => b.points - a.points)
+    .slice(0, 10);
+  res.json(board);
 });
 
 // Reports
