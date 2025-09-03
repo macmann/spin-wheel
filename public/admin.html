@@ -6,8 +6,28 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <form id="segments-form"></form>
-  <button id="save">Save Segments</button>
+  <h1>Admin Panel</h1>
+  <label><input type="checkbox" id="enabled" /> Enable Daily Spin</label>
+  <label>Reset Time: <input type="time" id="resetTime" value="00:00" /></label>
+
+  <h2>Reward Segments</h2>
+  <table id="segments-table">
+    <thead>
+      <tr><th>Label</th><th>Value</th><th>Probability</th><th>Daily Cap</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <button id="add-segment">Add Segment</button>
+  <button id="save-config">Save Config</button>
+
+  <h2>Activity Logs</h2>
+  <table id="logs-table">
+    <thead><tr><th>User</th><th>Reward</th><th>Time</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <a href="/api/reports/export?type=reward" target="_blank">Export Reward CSV</a>
+  <a href="/api/reports/export?type=summary" target="_blank">Export Summary CSV</a>
+
   <script src="admin.js"></script>
 </body>
 </html>

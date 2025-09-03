@@ -1,15 +1,21 @@
+let config;
+let segments = [];
 const canvas = document.getElementById('wheel');
 const ctx = canvas.getContext('2d');
 const size = canvas.width;
 const center = size / 2;
 const radius = center;
-
-const defaultSegments = Array.from({ length: 10 }, (_, i) => `Segment ${i + 1}`);
-let segments = JSON.parse(localStorage.getItem('segments')) || defaultSegments;
-
 const colors = ['#f3e5f5', '#ffffff'];
 
+async function loadConfig() {
+  const res = await fetch('/api/config');
+  config = await res.json();
+  segments = config.rewardSegments.map(s => s.label);
+  drawWheel();
+}
+
 function drawWheel() {
+  if (!segments.length) return;
   const angle = (2 * Math.PI) / segments.length;
   segments.forEach((seg, i) => {
     const start = i * angle;
@@ -32,15 +38,37 @@ function drawWheel() {
   });
 }
 
-drawWheel();
+function pickSegment() {
+  const rand = Math.random();
+  let sum = 0;
+  for (let i = 0; i < config.rewardSegments.length; i++) {
+    sum += config.rewardSegments[i].probability;
+    if (rand < sum) return i;
+  }
+  return config.rewardSegments.length - 1;
+}
 
 const spinBtn = document.getElementById('spin');
 spinBtn.addEventListener('click', () => {
+  if (!config.enabled) {
+    alert('Daily spin is disabled');
+    return;
+  }
+  const idx = pickSegment();
   const deg = 3600 + Math.random() * 360;
   canvas.style.transition = 'transform 4s ease-out';
   canvas.style.transform = `rotate(${deg}deg)`;
   canvas.addEventListener('transitionend', () => {
     canvas.style.transition = 'none';
     canvas.style.transform = `rotate(${deg % 360}deg)`;
+    const seg = config.rewardSegments[idx];
+    alert(`You won ${seg.label}`);
+    fetch('/api/logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: 'demoUser', rewardType: seg.label })
+    });
   }, { once: true });
 });
+
+loadConfig();
