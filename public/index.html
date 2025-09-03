@@ -1,16 +1,325 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Spin the Wheel</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<title>Lucky Wheel</title>
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0d0d2b;
+  font-family: system-ui, sans-serif;
+  color: #fff;
+}
+
+.card {
+  background: #1b1b3a;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  text-align: center;
+  width: 90%;
+  max-width: 420px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(45deg,#ff7a00,#ffe600);
+  -webkit-background-clip: text;
+  color: transparent;
+  letter-spacing: 1px;
+}
+
+.subtitle {
+  margin-top: 8px;
+  color: #ccc;
+}
+
+#user-id {
+  margin-top: 4px;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+/* wheel */
+#wheel-wrapper {
+  position: relative;
+  margin: 24px auto;
+  width: min(80vw, 300px);
+  height: min(80vw, 300px);
+}
+
+#wheel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 8px solid #fff;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  position: relative;
+  z-index: 1;
+}
+
+.pointer {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-bottom: 25px solid #e74c3c;
+  z-index: 3;
+}
+
+.hub {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70px;
+  height: 70px;
+  background: #fff;
+  color: #000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  z-index: 2;
+  box-shadow: 0 0 6px rgba(0,0,0,0.6) inset;
+}
+
+.axle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(100% + 40px);
+  height: 12px;
+  background: #888;
+  transform: translate(-50%, -50%);
+  border-radius: 6px;
+  z-index: 0;
+}
+
+/* buttons */
+button {
+  border: none;
+  border-radius: 9999px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  transition: background 0.2s;
+}
+
+button:focus {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+#spin {
+  background: #e74c3c;
+}
+
+#spin:hover:not(:disabled) {
+  background: #c0392b;
+}
+
+#spin:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+#result {
+  margin-top: 16px;
+}
+
+#leaderboardBtn {
+  margin-top: 16px;
+  background: #2ecc71;
+}
+
+#leaderboardBtn:hover {
+  background: #27ae60;
+}
+
+/* modal */
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+#overlay.active {
+  display: flex;
+}
+
+.modal {
+  background: #1b1b3a;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 300px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  position: relative;
+  color: #fff;
+}
+
+.modal h2 {
+  text-align: center;
+  margin-top: 0;
+}
+
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: #ddd;
+}
+</style>
 </head>
 <body>
-  <a href="admin.html" class="admin-link">Go to Admin Panel</a>
-  <canvas id="wheel" width="400" height="400"></canvas>
-  <div id="balance">Balance: 0</div>
-  <button id="spin">Spin</button>
-  <a href="leaderboard.html" class="admin-link">View Leaderboard</a>
-  <script src="wheel.js"></script>
+<div class="card">
+  <h1>LUCKY WHEEL</h1>
+  <p class="subtitle">Spin the wheel to win a prize!</p>
+  <p id="user-id">User ID:</p>
+
+  <div id="wheel-wrapper">
+    <div class="axle"></div>
+    <canvas id="wheel" width="300" height="300"></canvas>
+    <div class="pointer"></div>
+    <div class="hub">Bolt Logo</div>
+  </div>
+
+  <button id="spin" disabled>Spin</button>
+  <div id="result" aria-live="polite">You won: 10000 Pts!</div>
+  <button id="leaderboardBtn">Show Leaderboard</button>
+</div>
+
+<div id="overlay" role="dialog" aria-modal="true" aria-labelledby="leaderboardTitle">
+  <div class="modal">
+    <button class="close-btn" aria-label="Close dialog">✕</button>
+    <h2 id="leaderboardTitle">Leaderboard</h2>
+    <ol>
+      <li>Alice – 15000</li>
+      <li>Bob – 12000</li>
+      <li>Charlie – 11000</li>
+      <li>Denise – 9000</li>
+      <li>Eve – 5000</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+const segments = [
+  { label: "10,000 Pts", color: "#ff9f1c" },
+  { label: "No Points", color: "#e71d36" },
+  { label: "5,000 Pts", color: "#2ec4b6" },
+  { label: "1,000 Pts", color: "#3a86ff" },
+  { label: "2,500 Pts", color: "#8338ec" },
+  { label: "No Points", color: "#ff006e" },
+  { label: "500 Pts", color: "#0ead69" },
+  { label: "1,500 Pts", color: "#fb5607" }
+];
+
+function drawWheel() {
+  const canvas = document.getElementById('wheel');
+  const ctx = canvas.getContext('2d');
+  const radius = canvas.width / 2;
+  const step = 2 * Math.PI / segments.length;
+
+  segments.forEach((seg, i) => {
+    const start = i * step;
+    const end = start + step;
+
+    ctx.beginPath();
+    ctx.moveTo(radius, radius);
+    ctx.arc(radius, radius, radius, start, end);
+    ctx.fillStyle = seg.color;
+    ctx.fill();
+
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(radius, radius);
+    ctx.arc(radius, radius, radius, start, end);
+    ctx.stroke();
+
+    ctx.save();
+    ctx.translate(radius, radius);
+    ctx.rotate(start + step / 2);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 14px system-ui';
+    ctx.fillText(seg.label, radius - 10, 4);
+    ctx.restore();
+  });
+}
+
+drawWheel();
+
+function generateUserId() {
+  let id = '';
+  for (let i = 0; i < 16; i++) {
+    id += Math.floor(Math.random() * 10);
+  }
+  return id;
+}
+document.getElementById('user-id').textContent = 'User ID: ' + generateUserId();
+
+const overlay = document.getElementById('overlay');
+const leaderboardBtn = document.getElementById('leaderboardBtn');
+const closeBtn = document.querySelector('.close-btn');
+
+function openModal() {
+  overlay.classList.add('active');
+  overlay.addEventListener('click', outsideClick);
+  document.addEventListener('keydown', escClose);
+}
+
+function closeModal() {
+  overlay.classList.remove('active');
+  overlay.removeEventListener('click', outsideClick);
+  document.removeEventListener('keydown', escClose);
+}
+
+function outsideClick(e) {
+  if (e.target === overlay) {
+    closeModal();
+  }
+}
+
+function escClose(e) {
+  if (e.key === 'Escape') {
+    closeModal();
+  }
+}
+
+leaderboardBtn.addEventListener('click', openModal);
+closeBtn.addEventListener('click', closeModal);
+</script>
 </body>
 </html>
