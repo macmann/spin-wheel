@@ -42,8 +42,19 @@ body {
 #segments-form input {
   padding: 4px;
 }
-#save {
+#save-config {
   margin-top: 12px;
   padding: 8px 12px;
   font-size: 16px;
+}
+
+table {
+  border-collapse: collapse;
+  margin-bottom: 12px;
+}
+
+th, td {
+  border: 1px solid #fff;
+  padding: 4px 8px;
+  color: #fff;
 }
