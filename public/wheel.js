@@ -1,5 +1,7 @@
 let config;
 let segments = [];
+const userId = 'demoUser';
+const balanceEl = document.getElementById('balance');
 const canvas = document.getElementById('wheel');
 const ctx = canvas.getContext('2d');
 const size = canvas.width;
@@ -12,6 +14,12 @@ async function loadConfig() {
   config = await res.json();
   segments = config.rewardSegments.map(s => s.label);
   drawWheel();
+}
+
+async function loadUser() {
+  const res = await fetch(`/api/users/${userId}`);
+  const data = await res.json();
+  balanceEl.textContent = `Balance: ${data.points}`;
 }
 
 function drawWheel() {
@@ -66,9 +74,14 @@ spinBtn.addEventListener('click', () => {
     fetch('/api/logs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: 'demoUser', rewardType: seg.label })
-    });
+      body: JSON.stringify({ userId, rewardType: seg.label })
+    })
+      .then(r => r.json())
+      .then(d => {
+        balanceEl.textContent = `Balance: ${d.points}`;
+      });
   }, { once: true });
 });
 
 loadConfig();
+loadUser();
