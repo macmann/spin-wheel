@@ -1,0 +1,49 @@
+body {
+  margin: 0;
+  background: #800080;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: #000;
+  font-family: sans-serif;
+}
+.admin-link {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #fff;
+  color: #800080;
+  padding: 8px 12px;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: bold;
+}
+#wheel {
+  width: 400px;
+  height: 400px;
+}
+#spin {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+}
+#segments-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#segments-form label {
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+}
+#segments-form input {
+  padding: 4px;
+}
+#save {
+  margin-top: 12px;
+  padding: 8px 12px;
+  font-size: 16px;
+}
