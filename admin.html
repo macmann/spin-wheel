@@ -149,6 +149,24 @@ h3 { margin:24px 0 12px; font-size:1rem; color:var(--color-sub); font-weight:700
         <button type="button" class="btn btn-success" id="saveConfig">Save Configuration</button>
       </div>
     </div>
+    <div class="card" id="adsenseCard">
+      <h2>AdSense Settings</h2>
+      <div class="setting-row">
+        <label for="adsenseClient">Client ID</label>
+        <input type="text" id="adsenseClient" placeholder="ca-pub-xxxxxxxxxxxx" />
+      </div>
+      <div class="setting-row">
+        <label for="adsenseSlotMobile">Mobile Slot ID</label>
+        <input type="text" id="adsenseSlotMobile" placeholder="mobile slot" />
+      </div>
+      <div class="setting-row">
+        <label for="adsenseSlotDesktop">Desktop Slot ID</label>
+        <input type="text" id="adsenseSlotDesktop" placeholder="desktop slot" />
+      </div>
+      <div class="actions">
+        <button type="button" class="btn btn-success" id="saveAdsense">Save Ad Settings</button>
+      </div>
+    </div>
     <div class="card" id="monitorCard">
       <h2>User Monitoring</h2>
       <section>
@@ -284,16 +302,31 @@ function updateToggleLabel() {
   toggle.setAttribute('aria-checked', toggle.checked);
 }
 
+function loadAdsenseSettings() {
+  document.getElementById('adsenseClient').value = localStorage.getItem('adsenseClientId') || '';
+  document.getElementById('adsenseSlotMobile').value = localStorage.getItem('adSlotMobileId') || '';
+  document.getElementById('adsenseSlotDesktop').value = localStorage.getItem('adSlotDesktopId') || '';
+}
+
+function saveAdSettings() {
+  localStorage.setItem('adsenseClientId', document.getElementById('adsenseClient').value.trim());
+  localStorage.setItem('adSlotMobileId', document.getElementById('adsenseSlotMobile').value.trim());
+  localStorage.setItem('adSlotDesktopId', document.getElementById('adsenseSlotDesktop').value.trim());
+  showToast('AdSense settings saved');
+}
+
 function bindEvents() {
   document.getElementById('addReward').addEventListener('click', addRow);
   document.getElementById('saveConfig').addEventListener('click', saveConfig);
   document.getElementById('wheelToggle').addEventListener('change', updateToggleLabel);
+  document.getElementById('saveAdsense').addEventListener('click', saveAdSettings);
   document.addEventListener('keydown', e => { if(e.key === 'Escape') hideToast(); });
 }
 
 bindEvents();
 renderRewardsTable();
 updateToggleLabel();
+loadAdsenseSettings();
 </script>
 </body>
 </html>

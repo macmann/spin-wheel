@@ -1,209 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Gamification Portal</title>
-<style>
-  /* Base styles */
-  * { box-sizing: border-box; }
-  body { font-family: Arial, sans-serif; background:#f7f7f8; color:#333; margin:0; }
-  h2 { margin:0 0 16px; font-weight:600; color:#444; }
-  h3 { margin:24px 0 8px; font-weight:600; color:#555; }
-  .container { max-width:1200px; margin:40px auto; padding:0 20px; }
-  .cards { display:flex; flex-wrap:wrap; gap:20px; }
-  .card { background:#fff; border-radius:18px; box-shadow:0 2px 8px rgba(0,0,0,0.05); padding:24px; flex:1 1 480px; }
-  label { display:flex; align-items:center; gap:8px; font-size:14px; }
-  input[type="text"], input[type="number"], input[type="time"] {
-    border:1px solid #ccc; border-radius:10px; padding:8px 32px 8px 10px; font-size:14px; width:100%;
-  }
-  input[type="time"] { padding-right:32px; }
-  input:focus { outline:2px solid #4a90e2; }
-  table { width:100%; border-collapse:collapse; }
-  th, td { padding:8px; text-align:left; font-size:14px; }
-  thead { background:#f0f0f0; }
-  tbody tr { border-bottom:1px solid #e5e5e5; }
-  tbody tr:last-child { border-bottom:none; }
-  .btn { border:none; border-radius:20px; padding:8px 16px; font-size:14px; cursor:pointer; }
-  .btn-blue { background:#007bff; color:#fff; }
-  .btn-green { background:#28a745; color:#fff; }
-  .btn-blue:focus, .btn-green:focus { outline:2px solid #333; }
-  .delete-btn { background:none; border:none; color:#dc3545; cursor:pointer; padding:4px 8px; font-size:14px; }
-  .delete-btn:focus { outline:2px solid #dc3545; }
-  .actions { margin-top:16px; display:flex; gap:12px; }
-  .warning { color:#dc3545; font-size:13px; margin-top:8px; }
-  .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
-  /* Toggle switch */
-  .switch { position:relative; display:inline-block; width:40px; height:20px; }
-  .switch input { opacity:0; width:0; height:0; }
-  .slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#ccc; transition:.4s; border-radius:20px; }
-  .slider:before { position:absolute; content:""; height:16px; width:16px; left:2px; bottom:2px; background:white; transition:.4s; border-radius:50%; }
-  input:checked + .slider { background:#4cd964; }
-  input:checked + .slider:before { transform:translateX(20px); }
-  /* Time icon */
-  .time-wrapper { position:relative; width:160px; }
-  .time-wrapper:after { content:"\23F0"; position:absolute; right:8px; top:50%; transform:translateY(-50%); pointer-events:none; color:#666; font-size:14px; }
-  /* Toast */
-  #toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#28a745; color:#fff; padding:12px 24px; border-radius:20px; box-shadow:0 2px 8px rgba(0,0,0,0.2); opacity:0; transition:opacity .3s; }
-  #toast.show { opacity:1; }
-  #toast button { background:none; border:none; color:#fff; margin-left:12px; cursor:pointer; }
-  @media (max-width:999px){
-    .cards { flex-direction:column; }
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spin to Win</title>
+  <!-- AdSense script injected dynamically from admin settings -->
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-<div class="container">
-  <div class="cards">
-    <!-- Wheel Settings Card -->
-    <div class="card" id="wheel-card">
-      <h2>Wheel Settings</h2>
-      <div class="setting-row" style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
-        <label for="daily-toggle">Daily Spin Wheel</label>
-        <label class="switch">
-          <input type="checkbox" id="daily-toggle" role="switch" aria-checked="true" checked>
-          <span class="slider"></span>
-        </label>
-        <span id="toggle-status" class="sr-only">Enabled</span>
-      </div>
-      <div class="setting-row" style="margin-bottom:16px; display:flex; gap:16px; align-items:center;">
-        <label for="reset-time" style="flex:1;">Daily Reset Time (UTC)</label>
-        <div class="time-wrapper">
-          <input type="time" id="reset-time" value="00:00" aria-label="Daily Reset Time">
-        </div>
-        <span id="formatted-time">12:00 AM</span>
-      </div>
-      <h3>Reward Pool</h3>
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>REWARD NAME</th>
-              <th>PROBABILITY (%)</th>
-              <th>DAILY CAP</th>
-              <th>ACTION</th>
-            </tr>
-          </thead>
-          <tbody id="rewards-body"></tbody>
-        </table>
-        <div id="prob-warning" class="warning" aria-live="polite"></div>
-      </div>
-      <div class="actions">
-        <button class="btn btn-blue" id="add-reward">Add New Reward</button>
-        <button class="btn btn-green" id="save-config">Save Configuration</button>
-      </div>
-    </div>
-    <!-- User Monitoring Card -->
-    <div class="card" id="monitor-card">
-      <h2>User Monitoring</h2>
-      <h3>Recent Activity Logs</h3>
-      <table>
-        <thead>
-          <tr><th>USER ID</th><th>REWARD</th><th>TIMESTAMP</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <h3>Leaderboard</h3>
-      <table>
-        <thead>
-          <tr><th>RANK</th><th>USER ID</th><th>TOTAL POINTS</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+  <div id="consent-banner" class="banner" role="dialog" aria-label="Cookie consent">
+    <span>We use cookies to personalize ads.</span>
+    <button id="accept-consent" class="btn-consent">Accept</button>
+    <!-- For production in regulated regions, integrate a proper CMP. -->
   </div>
-</div>
-<div id="toast" role="alert" aria-live="polite"></div>
-<script>
-(function(){
-  const rewardsBody = document.getElementById('rewards-body');
-  const probWarning = document.getElementById('prob-warning');
-  const toast = document.getElementById('toast');
-  let rewardId = 3;
-  let rewards = [
-    {id:1, name:'Point 100', probability:10, cap:5},
-    {id:2, name:'Point 50', probability:20, cap:10},
-    {id:3, name:'Point 10', probability:70, cap:100}
-  ];
-  function renderRewardsTable(){
-    rewardsBody.innerHTML = '';
-    rewards.forEach(r => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><input type="text" value="${r.name}" data-id="${r.id}" data-field="name" aria-label="Reward Name"></td>
-        <td><input type="number" value="${r.probability}" data-id="${r.id}" data-field="probability" aria-label="Probability"></td>
-        <td><input type="number" value="${r.cap}" data-id="${r.id}" data-field="cap" aria-label="Daily Cap"></td>
-        <td><button class="delete-btn" data-id="${r.id}">Delete</button></td>`;
-      rewardsBody.appendChild(tr);
-    });
-  }
-  function addRow(){
-    rewardId++;
-    rewards.push({id:rewardId, name:'', probability:0, cap:0});
-    renderRewardsTable();
-  }
-  function removeRow(id){
-    rewards = rewards.filter(r => r.id !== id);
-    renderRewardsTable();
-    validateProbabilities();
-  }
-  function validateProbabilities(){
-    const sum = rewards.reduce((acc,r)=>acc + Number(r.probability||0),0);
-    if(sum !== 100){
-      probWarning.textContent = `Probabilities must sum to 100% (current: ${sum}%).`;
-    }else{
-      probWarning.textContent = '';
-    }
-  }
-  function showToast(msg){
-    toast.textContent = msg;
-    toast.classList.add('show');
-    const hide = () => toast.classList.remove('show');
-    const timer = setTimeout(hide,2000);
-    const escListener = (e) => { if(e.key==='Escape'){ hide(); clearTimeout(timer); document.removeEventListener('keydown', escListener); } };
-    document.addEventListener('keydown', escListener);
-  }
-  // Event bindings
-  document.getElementById('add-reward').addEventListener('click', () => { addRow(); });
-  document.getElementById('save-config').addEventListener('click', () => { showToast('Configuration saved'); });
-  rewardsBody.addEventListener('input', (e)=>{
-    const id = Number(e.target.getAttribute('data-id'));
-    const field = e.target.getAttribute('data-field');
-    const val = e.target.value;
-    const reward = rewards.find(r => r.id===id);
-    reward[field] = field === 'name'? val : Number(val);
-    if(field === 'probability') validateProbabilities();
-  });
-  rewardsBody.addEventListener('click', (e)=>{
-    if(e.target.classList.contains('delete-btn')){
-      const id = Number(e.target.getAttribute('data-id'));
-      removeRow(id);
-    }
-  });
-  // Toggle
-  const toggle = document.getElementById('daily-toggle');
-  const toggleStatus = document.getElementById('toggle-status');
-  toggle.addEventListener('change', () => {
-    toggleStatus.textContent = toggle.checked ? 'Enabled' : 'Disabled';
-    toggle.setAttribute('aria-checked', toggle.checked);
-  });
-  toggle.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ toggle.checked=!toggle.checked; toggle.dispatchEvent(new Event('change')); }});
-  // Time formatting
-  const resetTime = document.getElementById('reset-time');
-  const formatted = document.getElementById('formatted-time');
-  function formatTime(val){
-    const [h,m] = val.split(':');
-    let hour = Number(h);
-    const ampm = hour >=12 ? 'PM':'AM';
-    hour = hour %12; if(hour===0) hour=12;
-    return `${hour}:${m} ${ampm}`;
-  }
-  resetTime.addEventListener('input', () => { formatted.textContent = formatTime(resetTime.value); });
-  // Initial render
-  renderRewardsTable();
-  validateProbabilities();
-})();
-</script>
+
+  <main class="container">
+    <h1>Spin to Win</h1>
+    <div class="card">
+      <div id="status" aria-live="polite"></div>
+      <button id="prepare-btn" class="btn">Prepare Ad &amp; Spin</button>
+      <button id="spin-btn" class="btn" disabled aria-disabled="true">Spin Now</button>
+      <div id="result" class="result" aria-live="polite"></div>
+    </div>
+  </main>
+
+  <div id="footer-ad">
+    <ins class="adsbygoogle mobile"
+         style="display:inline-block;width:320px;height:50px"></ins>
+    <ins class="adsbygoogle desktop"
+         style="display:inline-block;width:728px;height:90px"></ins>
+  </div>
+  <script defer src="app.js"></script>
 </body>
 </html>
-
