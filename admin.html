@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin – Wheel Settings & User Monitoring</title>
+<style>
+:root {
+  --color-bg: #F4F6F8;
+  --color-card-bg: #fff;
+  --color-border: #E5E7EB;
+  --color-heading: #1F2937;
+  --color-sub: #6B7280;
+  --color-header-bg: #EEF2F7;
+  --color-header-text: #4B5563;
+  --blue: #2563EB;
+  --green: #22C55E;
+  --red: #EF4444;
+  --radius-card: 20px;
+  --radius-input: 12px;
+  --shadow-card: 0 8px 24px rgba(0,0,0,0.06);
+  --transition: 0.3s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+html { font-size: clamp(14px, 0.9vw + 10px, 16px); }
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+  background: var(--color-bg);
+  color: var(--color-heading);
+}
+.container { width: min(1200px, 100% - 32px); margin: 40px auto; }
+.grid { display: grid; gap: 20px; }
+@media (min-width:768px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width:1024px) { .grid { gap:24px; } }
+.card {
+  background: var(--color-card-bg);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 24px;
+}
+h2 {
+  margin: 0 0 24px;
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight:700;
+  color: var(--color-heading);
+}
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+.setting-row label { font-weight:500; }
+.switch { position: relative; display: inline-block; width:44px; height:24px; }
+.switch input { opacity:0; width:0; height:0; }
+.slider { position:absolute; inset:0; background:#d1d5db; border-radius:999px; transition:background var(--transition); }
+.slider:before { content:""; position:absolute; width:20px; height:20px; left:2px; top:2px; background:#fff; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,0.2); transition:transform var(--transition); }
+.switch input:checked + .slider { background: var(--green); }
+.switch input:checked + .slider:before { transform: translateX(20px); }
+.switch input:focus-visible + .slider { box-shadow:0 0 0 2px rgba(37,99,235,0.3); }
+.time-field { position:relative; display:inline-block; }
+.time-field input { padding-right:32px; }
+.time-field::before { content:""; position:absolute; width:16px; height:16px; border:2px solid var(--color-border); border-radius:50%; right:12px; top:50%; transform:translateY(-50%); }
+.time-field::after { content:""; position:absolute; width:6px; height:6px; border-left:2px solid var(--color-border); border-bottom:2px solid var(--color-border); right:18px; top:50%; transform:translateY(-50%) rotate(-45deg); }
+input[type="time"], input[type="text"], input[type="number"] {
+  border:1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  padding:8px 12px;
+  font-size:1rem;
+  width:100%;
+  box-sizing:border-box;
+}
+input:focus { outline:none; box-shadow:0 0 0 2px rgba(37,99,235,0.3); border-color:var(--blue); }
+.table { width:100%; border-collapse:collapse; }
+.table thead th {
+  background: var(--color-header-bg);
+  color: var(--color-header-text);
+  text-align:left;
+  padding:12px;
+  font-size:0.875rem;
+}
+.table tbody td { padding:8px 12px; border-bottom:1px solid var(--color-border); }
+.table tbody tr:last-child td { border-bottom:none; }
+.delete { background:none; border:none; color:var(--red); cursor:pointer; font-weight:500; }
+.delete:hover, .delete:focus { text-decoration:underline; }
+.delete:focus { outline:none; box-shadow:0 0 0 2px rgba(37,99,235,0.3); border-radius:4px; }
+.btn {
+  border:none; border-radius:999px; padding:8px 16px; font-size:0.875rem; font-weight:600; cursor:pointer; transition:background var(--transition), opacity var(--transition);
+}
+.btn:focus { outline:none; box-shadow:0 0 0 2px rgba(37,99,235,0.3); }
+.btn-primary { background:var(--blue); color:#fff; }
+.btn-primary:hover { background:#1e50c2; }
+.btn-success { background:var(--green); color:#fff; }
+.btn-success:hover { background:#1a9f4a; }
+.btn:disabled { opacity:0.6; cursor:not-allowed; }
+.actions { display:flex; gap:12px; margin-top:16px; }
+#probError { color:var(--red); font-size:0.875rem; margin-top:8px; }
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+.toast {
+  position:fixed; left:50%; bottom:-60px; transform:translateX(-50%); background:var(--color-card-bg); padding:12px 24px; box-shadow:0 4px 12px rgba(0,0,0,0.1); border-radius:999px; opacity:0; pointer-events:none; transition:bottom var(--transition), opacity var(--transition);
+}
+.toast.show { bottom:32px; opacity:1; pointer-events:auto; }
+.toast:focus { outline:none; box-shadow:0 0 0 2px rgba(37,99,235,0.3); }
+section { margin-top:24px; }
+h3 { margin:24px 0 12px; font-size:1rem; color:var(--color-sub); font-weight:700; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="grid">
+    <div class="card" id="settingsCard">
+      <h2>Wheel Settings</h2>
+      <div class="setting-row">
+        <label for="wheelToggle">Daily Spin Wheel</label>
+        <div>
+          <label class="switch">
+            <input type="checkbox" id="wheelToggle" role="switch" aria-checked="false" aria-labelledby="wheelToggleStatus">
+            <span class="slider"></span>
+          </label>
+          <span id="wheelToggleStatus" class="sr-only" aria-live="polite">Daily Spin Wheel disabled</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <label for="resetTime">Daily Reset Time (UTC)</label>
+        <div class="time-field">
+          <input type="time" id="resetTime">
+        </div>
+      </div>
+      <h3>Reward Pool</h3>
+      <table class="table" aria-describedby="probError">
+        <thead>
+          <tr>
+            <th>REWARD NAME</th>
+            <th>PROBABILITY (%)</th>
+            <th>DAILY CAP</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody id="rewardsBody"></tbody>
+      </table>
+      <div id="probError" aria-live="polite"></div>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="addReward">Add New Reward</button>
+        <button type="button" class="btn btn-success" id="saveConfig">Save Configuration</button>
+      </div>
+    </div>
+    <div class="card" id="monitorCard">
+      <h2>User Monitoring</h2>
+      <section>
+        <h3>Recent Activity Logs</h3>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>USER ID</th>
+              <th>REWARD</th>
+              <th>TIMESTAMP</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+      <section>
+        <h3>Leaderboard</h3>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>RANK</th>
+              <th>USER ID</th>
+              <th>TOTAL POINTS</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite" tabindex="-1"></div>
+<script>
+let rewards = [
+  { id: 1, name: 'Point 100', probability: 10, cap: 5 },
+  { id: 2, name: 'Point 50', probability: 20, cap: 10 },
+  { id: 3, name: 'Point 10', probability: 70, cap: 100 }
+];
+let counter = 4;
+
+function renderRewardsTable() {
+  const tbody = document.getElementById('rewardsBody');
+  tbody.innerHTML = '';
+  rewards.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.dataset.id = r.id;
+    tr.innerHTML = `
+      <td><input type="text" value="${r.name}" aria-label="Reward Name"></td>
+      <td><input type="number" min="0" max="100" value="${r.probability}" aria-label="Probability"></td>
+      <td><input type="number" min="0" value="${r.cap}" aria-label="Daily Cap"></td>
+      <td><button type="button" class="delete" data-id="${r.id}">Delete</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  bindRowEvents();
+  updateTotalsAndValidation();
+}
+
+function bindRowEvents() {
+  document.querySelectorAll('#rewardsBody input').forEach(input => {
+    input.addEventListener('input', updateFromInput);
+    input.addEventListener('keydown', restrictNumeric);
+  });
+  document.querySelectorAll('#rewardsBody .delete').forEach(btn => {
+    btn.addEventListener('click', () => removeRow(parseInt(btn.dataset.id)));
+  });
+}
+
+function restrictNumeric(e) {
+  if(['e','E','+','-','.'].includes(e.key)) e.preventDefault();
+}
+
+function updateFromInput(e) {
+  const tr = e.target.closest('tr');
+  const id = parseInt(tr.dataset.id);
+  const reward = rewards.find(r => r.id === id);
+  const inputs = tr.querySelectorAll('input');
+  reward.name = inputs[0].value;
+  reward.probability = parseFloat(inputs[1].value) || 0;
+  reward.cap = parseInt(inputs[2].value) || 0;
+  updateTotalsAndValidation();
+}
+
+function updateTotalsAndValidation() {
+  const total = rewards.reduce((sum, r) => sum + (Number(r.probability) || 0), 0);
+  const msgEl = document.getElementById('probError');
+  if(total === 100) {
+    msgEl.textContent = '';
+  } else {
+    msgEl.textContent = `Probabilities must sum to 100% (current: ${total}).`;
+  }
+}
+
+function addRow() {
+  rewards.push({ id: counter++, name: '', probability: 0, cap: 0 });
+  renderRewardsTable();
+}
+
+function removeRow(id) {
+  const idx = rewards.findIndex(r => r.id === id);
+  if(idx > -1) {
+    rewards.splice(idx,1);
+    renderRewardsTable();
+  }
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  toast.focus();
+  setTimeout(() => { hideToast(); }, 2000);
+}
+
+function hideToast() {
+  const toast = document.getElementById('toast');
+  toast.classList.remove('show');
+}
+
+function saveConfig() {
+  const total = rewards.reduce((sum, r) => sum + (Number(r.probability) || 0), 0);
+  if(total !== 100) {
+    showToast('Probabilities must sum to 100%');
+    return;
+  }
+  showToast('Configuration saved');
+}
+
+function updateToggleLabel() {
+  const toggle = document.getElementById('wheelToggle');
+  const label = document.getElementById('wheelToggleStatus');
+  label.textContent = toggle.checked ? 'Daily Spin Wheel enabled' : 'Daily Spin Wheel disabled';
+  toggle.setAttribute('aria-checked', toggle.checked);
+}
+
+function bindEvents() {
+  document.getElementById('addReward').addEventListener('click', addRow);
+  document.getElementById('saveConfig').addEventListener('click', saveConfig);
+  document.getElementById('wheelToggle').addEventListener('change', updateToggleLabel);
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') hideToast(); });
+}
+
+bindEvents();
+renderRewardsTable();
+updateToggleLabel();
+</script>
+</body>
+</html>
