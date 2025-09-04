@@ -1,20 +1,18 @@
 let config;
 let segments = [];
 
-function getUserName() {
-  const stored = localStorage.getItem('userName');
-  if (stored) return stored;
-  let name = '';
-  while (!name) {
-    name = prompt('Enter your name');
-    if (name === null) name = '';
-    name = name.trim();
+function getUser() {
+  const name = localStorage.getItem('userName');
+  const phone = localStorage.getItem('userPhone');
+  if (!name || !phone) {
+    window.location.href = 'login.html';
+    return { name: '', phone: '' };
   }
-  localStorage.setItem('userName', name);
-  return name;
+  return { name, phone };
 }
 
-const userId = getUserName();
+const user = getUser();
+const userId = user.phone;
 const balanceEl = document.getElementById('balance');
 const canvas = document.getElementById('wheel');
 const ctx = canvas.getContext('2d');

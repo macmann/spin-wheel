@@ -3,6 +3,7 @@ import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,6 +25,33 @@ app.use(cors());
 app.use(express.json({ limit: '5mb' }));
 app.use(express.static(path.join(__dirname, '../public')));
 
+// Auth endpoints
+app.post('/api/register', (req, res) => {
+  const { name, phone, password } = req.body;
+  if (!name || !phone || !password) {
+    return res.status(400).json({ error: 'missing fields' });
+  }
+  const users = readJSON(usersPath);
+  if (users[phone]) {
+    return res.status(400).json({ error: 'user exists' });
+  }
+  const hash = crypto.createHash('sha256').update(password).digest('hex');
+  users[phone] = { name, password: hash, points: 0 };
+  writeJSON(usersPath, users);
+  res.json({ status: 'registered' });
+});
+
+app.post('/api/login', (req, res) => {
+  const { phone, password } = req.body;
+  const users = readJSON(usersPath);
+  const user = users[phone];
+  const hash = crypto.createHash('sha256').update(password).digest('hex');
+  if (!user || user.password !== hash) {
+    return res.status(400).json({ error: 'invalid credentials' });
+  }
+  res.json({ status: 'ok', name: user.name, phone, points: user.points });
+});
+
 // Config endpoints
 app.get('/api/config', (req, res) => {
   res.json(readJSON(configPath));
@@ -39,33 +67,35 @@ app.get('/api/logs', (req, res) => {
 });
 app.post('/api/logs', (req, res) => {
   const logs = readJSON(logsPath);
-  logs.push({ ...req.body, timestamp: new Date().toISOString() });
+  const { userId: phone, rewardType } = req.body;
+  const users = readJSON(usersPath);
+  logs.push({ userId: phone, userName: users[phone]?.name || '', rewardType, timestamp: new Date().toISOString() });
   writeJSON(logsPath, logs);
 
-  const { userId, rewardType } = req.body;
   const config = readJSON(configPath);
   const seg = config.rewardSegments.find(s => s.label === rewardType);
   const value = seg?.value || 0;
-  const users = readJSON(usersPath);
-  const current = users[userId]?.points || 0;
-  users[userId] = { points: current + value };
+  const user = users[phone] || { name: '', password: '', points: 0 };
+  user.points = (user.points || 0) + value;
+  users[phone] = user;
   writeJSON(usersPath, users);
 
-  res.json({ status: 'logged', points: users[userId].points });
+  res.json({ status: 'logged', points: user.points });
 });
 
 // User balance
-app.get('/api/users/:id', (req, res) => {
+app.get('/api/users/:phone', (req, res) => {
   const users = readJSON(usersPath);
-  const userId = req.params.id;
-  res.json({ userId, points: users[userId]?.points || 0 });
+  const phone = req.params.phone;
+  const user = users[phone];
+  res.json({ phone, name: user?.name || null, points: user?.points || 0 });
 });
 
 // Leaderboard
 app.get('/api/leaderboard', (req, res) => {
   const users = readJSON(usersPath);
-  const board = Object.entries(users)
-    .map(([userId, { points }]) => ({ userId, points }))
+  const board = Object.values(users)
+    .map(u => ({ name: u.name, points: u.points }))
     .sort((a, b) => b.points - a.points)
     .slice(0, 10);
   res.json(board);
