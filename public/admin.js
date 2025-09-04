@@ -2,6 +2,9 @@ const enabledEl = document.getElementById('enabled');
 const resetEl = document.getElementById('resetTime');
 const segTable = document.getElementById('segments-table').querySelector('tbody');
 const logsTable = document.getElementById('logs-table').querySelector('tbody');
+const logoInput = document.getElementById('logoInput');
+const logoPreview = document.getElementById('logoPreview');
+let logoData = '';
 
 function addRow(seg = {}) {
   const tr = document.createElement('tr');
@@ -18,6 +21,11 @@ async function loadConfig() {
   const cfg = await res.json();
   enabledEl.checked = cfg.enabled;
   resetEl.value = cfg.resetTime;
+  logoData = cfg.logo || '';
+  if (logoData) {
+    logoPreview.src = logoData;
+    logoPreview.style.display = 'block';
+  }
   segTable.innerHTML = '';
   (cfg.rewardSegments || []).forEach(s => addRow(s));
 }
@@ -35,6 +43,18 @@ async function loadLogs() {
 
 document.getElementById('add-segment').addEventListener('click', () => addRow());
 
+logoInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    logoData = ev.target.result;
+    logoPreview.src = logoData;
+    logoPreview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+});
+
 document.getElementById('save-config').addEventListener('click', async () => {
   const rows = Array.from(segTable.querySelectorAll('tr'));
   const rewardSegments = rows.map(r => {
@@ -49,7 +69,8 @@ document.getElementById('save-config').addEventListener('click', async () => {
   const body = {
     enabled: enabledEl.checked,
     resetTime: resetEl.value,
-    rewardSegments
+    rewardSegments,
+    logo: logoData
   };
   await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   alert('Config saved');

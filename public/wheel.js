@@ -13,6 +13,12 @@ async function loadConfig() {
   const res = await fetch('/api/config');
   config = await res.json();
   segments = config.rewardSegments.map(s => s.label);
+  const logoImg = document.getElementById('hub-logo');
+  if (config.logo) {
+    logoImg.src = config.logo;
+  } else {
+    logoImg.style.display = 'none';
+  }
   drawWheel();
 }
 
