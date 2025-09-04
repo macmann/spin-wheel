@@ -1,6 +1,20 @@
 let config;
 let segments = [];
-const userId = 'demoUser';
+
+function getUserName() {
+  const stored = localStorage.getItem('userName');
+  if (stored) return stored;
+  let name = '';
+  while (!name) {
+    name = prompt('Enter your name');
+    if (name === null) name = '';
+    name = name.trim();
+  }
+  localStorage.setItem('userName', name);
+  return name;
+}
+
+const userId = getUserName();
 const balanceEl = document.getElementById('balance');
 const canvas = document.getElementById('wheel');
 const ctx = canvas.getContext('2d');
@@ -23,7 +37,7 @@ async function loadConfig() {
 }
 
 async function loadUser() {
-  const res = await fetch(`/api/users/${userId}`);
+  const res = await fetch(`/api/users/${encodeURIComponent(userId)}`);
   const data = await res.json();
   balanceEl.textContent = `Balance: ${data.points}`;
 }
