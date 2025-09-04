@@ -238,16 +238,20 @@ button:focus {
 </div>
 
 <script>
-const segments = [
-  { label: "10,000 Pts", color: "#ff9f1c" },
-  { label: "No Points", color: "#e71d36" },
-  { label: "5,000 Pts", color: "#2ec4b6" },
-  { label: "1,000 Pts", color: "#3a86ff" },
-  { label: "2,500 Pts", color: "#8338ec" },
-  { label: "No Points", color: "#ff006e" },
-  { label: "500 Pts", color: "#0ead69" },
-  { label: "1,500 Pts", color: "#fb5607" }
-];
+let config;
+let segments = [];
+const colors = ["#ff9f1c", "#e71d36", "#2ec4b6", "#3a86ff", "#8338ec", "#ff006e", "#0ead69", "#fb5607"];
+
+async function loadConfig() {
+  try {
+    const res = await fetch('/api/config');
+    config = await res.json();
+    segments = config.rewardSegments.map((s, i) => ({ label: s.label, color: colors[i % colors.length] }));
+    drawWheel();
+  } catch (err) {
+    console.error('Failed to load config', err);
+  }
+}
 
 function drawWheel() {
   const canvas = document.getElementById('wheel');
@@ -283,7 +287,7 @@ function drawWheel() {
   });
 }
 
-drawWheel();
+loadConfig();
 
 // --- Spin logic ---
 function generateUserId() {
@@ -301,10 +305,20 @@ const canvas = document.getElementById('wheel');
 const spinBtn = document.getElementById('spin');
 const resultEl = document.getElementById('result');
 
+function pickSegment() {
+  const rand = Math.random();
+  let sum = 0;
+  for (let i = 0; i < config.rewardSegments.length; i++) {
+    sum += config.rewardSegments[i].probability;
+    if (rand < sum) return i;
+  }
+  return config.rewardSegments.length - 1;
+}
+
 spinBtn.addEventListener('click', () => {
   spinBtn.disabled = true;
   const step = 360 / segments.length;
-  const index = Math.floor(Math.random() * segments.length);
+  const index = pickSegment();
   const deg = 3600 + 270 - (index * step + step / 2);
   canvas.style.transition = 'transform 4s ease-out';
   canvas.style.transform = `rotate(${deg}deg)`;
