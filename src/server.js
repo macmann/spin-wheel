@@ -20,6 +20,21 @@ function writeJSON(p, data) {
   fs.writeFileSync(p, JSON.stringify(data, null, 2));
 }
 
+function canSpin(phone) {
+  const config = readJSON(configPath);
+  const logs = readJSON(logsPath).filter(l => l.userId === phone);
+  const intervalMs = (config.intervalHours || 24) * 60 * 60 * 1000;
+  const maxSpins = config.spinsPerInterval || 1;
+  const now = Date.now();
+  const recent = logs.filter(l => now - new Date(l.timestamp).getTime() < intervalMs);
+  if (recent.length < maxSpins) {
+    return { canSpin: true, remaining: maxSpins - recent.length };
+  }
+  const oldest = recent.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))[0];
+  const nextSpin = new Date(new Date(oldest.timestamp).getTime() + intervalMs);
+  return { canSpin: false, nextSpin };
+}
+
 const app = express();
 app.use(cors());
 // Allow larger JSON bodies so base64-encoded logos can be saved
@@ -60,6 +75,16 @@ app.get('/api/config', (req, res) => {
 app.post('/api/config', (req, res) => {
   writeJSON(configPath, req.body);
   res.json({ status: 'ok' });
+});
+
+app.post('/api/canspin', (req, res) => {
+  const { phone } = req.body;
+  const status = canSpin(phone);
+  res.json({
+    canSpin: status.canSpin,
+    remaining: status.remaining,
+    nextSpin: status.nextSpin ? status.nextSpin.toISOString() : null
+  });
 });
 
 // Redemption rewards configuration (admin)
@@ -113,8 +138,12 @@ app.get('/api/logs', (req, res) => {
   res.json(readJSON(logsPath));
 });
 app.post('/api/logs', (req, res) => {
-  const logs = readJSON(logsPath);
   const { userId: phone, rewardType } = req.body;
+  const eligibility = canSpin(phone);
+  if (!eligibility.canSpin) {
+    return res.status(429).json({ error: 'limit reached', nextSpin: eligibility.nextSpin.toISOString() });
+  }
+  const logs = readJSON(logsPath);
   const users = readJSON(usersPath);
   logs.push({ userId: phone, userName: users[phone]?.name || '', rewardType, timestamp: new Date().toISOString() });
   writeJSON(logsPath, logs);

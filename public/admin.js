@@ -1,5 +1,7 @@
 const enabledEl = document.getElementById('enabled');
 const resetEl = document.getElementById('resetTime');
+const spinsEl = document.getElementById('spinsPerInterval');
+const intervalEl = document.getElementById('intervalHours');
 const segTable = document.getElementById('segments-table').querySelector('tbody');
 const logsTable = document.getElementById('logs-table').querySelector('tbody');
 const redeemTable = document.getElementById('redeem-table').querySelector('tbody');
@@ -41,6 +43,8 @@ async function loadConfig() {
   const cfg = await res.json();
   enabledEl.checked = cfg.enabled;
   resetEl.value = cfg.resetTime;
+  spinsEl.value = cfg.spinsPerInterval || 1;
+  intervalEl.value = cfg.intervalHours || 24;
   logoData = cfg.logo || '';
   if (logoData) {
     logoPreview.src = logoData;
@@ -102,6 +106,8 @@ document.getElementById('save-config').addEventListener('click', async () => {
   const body = {
     enabled: enabledEl.checked,
     resetTime: resetEl.value,
+    spinsPerInterval: Number(spinsEl.value),
+    intervalHours: Number(intervalEl.value),
     rewardSegments,
     logo: logoData
   };

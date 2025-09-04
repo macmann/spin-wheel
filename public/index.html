@@ -176,6 +176,10 @@ button:focus {
   margin-top: 16px;
 }
 
+#next-spin-timer {
+  margin-top: 8px;
+}
+
 #leaderboardBtn {
   margin-top: 16px;
   background: #2ecc71;
@@ -312,6 +316,7 @@ button:focus {
       </div>
 
       <button id="spin">Spin</button>
+      <div id="next-spin-timer"></div>
       <div id="result" aria-live="polite">Spin to win points!</div>
       <button id="leaderboardBtn">Show Leaderboard</button>
       <button id="accountBtn">My Account</button>
@@ -358,6 +363,11 @@ const userId = user.phone;
 document.getElementById('user-id').textContent = 'User: ' + user.name;
 const userPointsEl = document.getElementById('user-points');
 let totalPoints = 0;
+const canvas = document.getElementById('wheel');
+const spinBtn = document.getElementById('spin');
+const resultEl = document.getElementById('result');
+const timerEl = document.getElementById('next-spin-timer');
+let countdown;
 
 async function loadUserPoints() {
   try {
@@ -371,6 +381,45 @@ async function loadUserPoints() {
 }
 
 loadUserPoints();
+
+async function updateSpinStatus() {
+  try {
+    const res = await fetch('/api/canspin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: userId })
+    });
+    const data = await res.json();
+    if (data.canSpin) {
+      spinBtn.disabled = false;
+      timerEl.textContent = '';
+      if (countdown) clearInterval(countdown);
+    } else {
+      spinBtn.disabled = true;
+      if (data.nextSpin) startTimer(new Date(data.nextSpin));
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function startTimer(target) {
+  if (countdown) clearInterval(countdown);
+  function tick() {
+    const diff = target - Date.now();
+    if (diff <= 0) {
+      clearInterval(countdown);
+      updateSpinStatus();
+      return;
+    }
+    const s = Math.floor(diff / 1000) % 60;
+    const m = Math.floor(diff / (1000 * 60)) % 60;
+    const h = Math.floor(diff / (1000 * 60 * 60));
+    timerEl.textContent = `Next spin in ${h}h ${m}m ${s}s`;
+  }
+  tick();
+  countdown = setInterval(tick, 1000);
+}
 
 let fireworks;
 const popup = document.getElementById('win-popup');
@@ -447,12 +496,9 @@ function drawWheel() {
 }
 
 loadConfig();
+updateSpinStatus();
 
 // --- Spin logic ---
-const canvas = document.getElementById('wheel');
-const spinBtn = document.getElementById('spin');
-const resultEl = document.getElementById('result');
-
 function pickSegment() {
   const rand = Math.random();
   let sum = 0;
@@ -463,7 +509,17 @@ function pickSegment() {
   return config.rewardSegments.length - 1;
 }
 
-spinBtn.addEventListener('click', () => {
+spinBtn.addEventListener('click', async () => {
+  const statusRes = await fetch('/api/canspin', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone: userId })
+  });
+  const status = await statusRes.json();
+  if (!status.canSpin) {
+    if (status.nextSpin) startTimer(new Date(status.nextSpin));
+    return;
+  }
   spinBtn.disabled = true;
   const step = 360 / segments.length;
   const index = pickSegment();
@@ -473,22 +529,22 @@ spinBtn.addEventListener('click', () => {
   canvas.addEventListener('transitionend', async () => {
     canvas.style.transition = 'none';
     canvas.style.transform = `rotate(${deg % 360}deg)`;
-      const seg = segments[index];
-      resultEl.textContent = `You won: ${seg.label}`;
-      showPopup(seg.value);
-      try {
-        const res = await fetch('/api/logs', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, rewardType: seg.label })
+    const seg = segments[index];
+    resultEl.textContent = `You won: ${seg.label}`;
+    showPopup(seg.value);
+    try {
+      const res = await fetch('/api/logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, rewardType: seg.label })
       });
-        const data = await res.json();
-        totalPoints = data.points;
-        userPointsEl.textContent = 'Total Points: ' + totalPoints;
+      const data = await res.json();
+      totalPoints = data.points;
+      userPointsEl.textContent = 'Total Points: ' + totalPoints;
     } catch (err) {
       console.error(err);
     }
-    spinBtn.disabled = false;
+    updateSpinStatus();
   }, { once: true });
 });
 // --- Leaderboard flip ---
