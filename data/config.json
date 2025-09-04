@@ -2,6 +2,8 @@
   "enabled": true,
   "resetTime": "00:00",
   "logo": "",
+  "spinsPerInterval": 1,
+  "intervalHours": 24,
   "rewardSegments": [
     {"label": "10 points", "value": 10, "probability": 0.5, "dailyCap": 100},
     {"label": "20 points", "value": 20, "probability": 0.3, "dailyCap": 50},
