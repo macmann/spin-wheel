@@ -63,7 +63,8 @@ spinBtn.addEventListener('click', () => {
     return;
   }
   const idx = pickSegment();
-  const deg = 3600 + Math.random() * 360;
+  const step = 360 / segments.length;
+  const deg = 3600 + 270 - (idx * step + step / 2);
   canvas.style.transition = 'transform 4s ease-out';
   canvas.style.transform = `rotate(${deg}deg)`;
   canvas.addEventListener('transitionend', () => {
