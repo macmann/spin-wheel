@@ -221,9 +221,54 @@ button:focus {
 #card.flipped .front {
   pointer-events: none;
 }
-#card:not(.flipped) .back {
-  pointer-events: none;
-}
+  #card:not(.flipped) .back {
+    pointer-events: none;
+  }
+
+  /* win popup */
+  #win-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  #win-popup.show {
+    display: flex;
+  }
+
+  #fireworks-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .popup-content {
+    position: relative;
+    background: #1b1b3a;
+    padding: 24px 40px;
+    border-radius: 16px;
+    text-align: center;
+    z-index: 1;
+  }
+
+  #popup-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #fff;
+  }
 
 @media (max-width: 480px) {
   .face {
@@ -261,18 +306,48 @@ button:focus {
       <button id="backBtn">Back</button>
     </div>
   </div>
-</div>
+  </div>
+  <div id="win-popup">
+    <div id="fireworks-container"></div>
+    <div class="popup-content">
+      <span id="popup-close">&times;</span>
+      <p id="popup-message">Congratulation, you won <span id="popup-amount"></span> points</p>
+    </div>
+  </div>
 
-<script>
+  <script src="https://cdn.jsdelivr.net/npm/fireworks-js@2/dist/index.umd.js"></script>
+  <script>
 let config;
 let segments = [];
 const colors = ["#ff9f1c", "#e71d36", "#2ec4b6", "#3a86ff", "#8338ec", "#ff006e", "#0ead69", "#fb5607"];
+
+let fireworks;
+const popup = document.getElementById('win-popup');
+const popupAmount = document.getElementById('popup-amount');
+const popupClose = document.getElementById('popup-close');
+const fireworksContainer = document.getElementById('fireworks-container');
+
+function showPopup(points) {
+  popupAmount.textContent = points;
+  popup.classList.add('show');
+  if (!fireworks) {
+    fireworks = new Fireworks.default(fireworksContainer, { autoresize: true });
+  }
+  fireworks.start();
+}
+
+function hidePopup() {
+  popup.classList.remove('show');
+  if (fireworks) fireworks.stop();
+}
+
+popupClose.addEventListener('click', hidePopup);
 
 async function loadConfig() {
   try {
     const res = await fetch('/api/config');
     config = await res.json();
-    segments = config.rewardSegments.map((s, i) => ({ label: s.label, color: colors[i % colors.length] }));
+  segments = config.rewardSegments.map((s, i) => ({ label: s.label, value: s.value, color: colors[i % colors.length] }));
     const logoImg = document.getElementById('hub-logo');
     if (config.logo) {
       logoImg.src = config.logo;
@@ -358,13 +433,14 @@ spinBtn.addEventListener('click', () => {
   canvas.addEventListener('transitionend', async () => {
     canvas.style.transition = 'none';
     canvas.style.transform = `rotate(${deg % 360}deg)`;
-    const seg = segments[index];
-    resultEl.textContent = `You won: ${seg.label}`;
-    try {
-      await fetch('/api/logs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, rewardType: seg.label })
+      const seg = segments[index];
+      resultEl.textContent = `You won: ${seg.label}`;
+      showPopup(seg.value);
+      try {
+        await fetch('/api/logs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, rewardType: seg.label })
       });
     } catch (err) {
       console.error(err);
