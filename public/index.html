@@ -152,6 +152,15 @@ button:focus {
   background: #27ae60;
 }
 
+#adminBtn {
+  margin-top: 10px;
+  background: #2980b9;
+}
+
+#adminBtn:hover {
+  background: #3498db;
+}
+
 /* modal */
 #overlay {
   position: fixed;
@@ -217,6 +226,7 @@ button:focus {
   <button id="spin">Spin</button>
   <div id="result" aria-live="polite">Spin to win points!</div>
   <button id="leaderboardBtn">Show Leaderboard</button>
+  <button id="adminBtn">Admin Panel</button>
 </div>
 
 <div id="overlay" role="dialog" aria-modal="true" aria-labelledby="leaderboardTitle">
@@ -295,7 +305,7 @@ spinBtn.addEventListener('click', () => {
   spinBtn.disabled = true;
   const step = 360 / segments.length;
   const index = Math.floor(Math.random() * segments.length);
-  const deg = 3600 + index * step + step / 2;
+  const deg = 3600 + 270 - (index * step + step / 2);
   canvas.style.transition = 'transform 4s ease-out';
   canvas.style.transform = `rotate(${deg}deg)`;
   canvas.addEventListener('transitionend', async () => {
@@ -327,11 +337,17 @@ async function loadLeaderboard() {
     const board = await res.json();
     const list = document.getElementById('leaderboardList');
     list.innerHTML = '';
-    board.forEach(row => {
+    if (board.length === 0) {
       const li = document.createElement('li');
-      li.textContent = `${row.userId} – ${row.points}`;
+      li.textContent = 'No entries yet';
       list.appendChild(li);
-    });
+    } else {
+      board.forEach(row => {
+        const li = document.createElement('li');
+        li.textContent = `${row.userId} – ${row.points}`;
+        list.appendChild(li);
+      });
+    }
   } catch (err) {
     console.error(err);
   }
@@ -364,6 +380,10 @@ function escClose(e) {
 
 leaderboardBtn.addEventListener('click', openModal);
 closeBtn.addEventListener('click', closeModal);
+const adminBtn = document.getElementById('adminBtn');
+adminBtn.addEventListener('click', () => {
+  window.location.href = 'admin.html';
+});
 </script>
 </body>
 </html>
