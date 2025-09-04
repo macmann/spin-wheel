@@ -4,7 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Spin to Win</title>
-  <!-- AdSense script injected dynamically from admin settings -->
+
+  <!-- Google AdSense Auto Ads (optional).
+       If you're using dynamic injection via localStorage (app.js), you can keep this or remove it.
+       Replace YOUR-ADSENSE-CLIENT-ID with your real client if using Auto Ads. -->
+  <script
+    async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=YOUR-ADSENSE-CLIENT-ID"
+    crossorigin="anonymous">
+  </script>
+
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -25,11 +34,21 @@
   </main>
 
   <div id="footer-ad">
+    <!-- Footer ad units. If you want static config, fill in data-ad-client and data-ad-slot.
+         If you store IDs in localStorage (adsenseClientId, adSlotMobileId, adSlotDesktopId),
+         app.js will set these automatically after consent. -->
     <ins class="adsbygoogle mobile"
-         style="display:inline-block;width:320px;height:50px"></ins>
+         style="display:inline-block;width:320px;height:50px"
+         data-ad-client="YOUR-ADSENSE-CLIENT-ID"
+         data-ad-slot="YOUR-MOBILE-AD-UNIT-ID"></ins>
+
     <ins class="adsbygoogle desktop"
-         style="display:inline-block;width:728px;height:90px"></ins>
+         style="display:inline-block;width:728px;height:90px"
+         data-ad-client="YOUR-ADSENSE-CLIENT-ID"
+         data-ad-slot="YOUR-DESKTOP-AD-UNIT-ID"></ins>
   </div>
+
+  <!-- Do NOT push ads here; consent flow in app.js handles loading/fill. -->
   <script defer src="app.js"></script>
 </body>
 </html>
