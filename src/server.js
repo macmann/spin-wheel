@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import fs from 'fs';
@@ -40,6 +41,16 @@ app.use(cors());
 // Allow larger JSON bodies so base64-encoded logos can be saved
 app.use(express.json({ limit: '5mb' }));
 app.use(express.static(path.join(__dirname, '../public')));
+
+// Expose selected environment variables to the client
+app.get('/env.js', (req, res) => {
+  res.type('application/javascript');
+  res.send(`window.ENV=${JSON.stringify({
+    ADSENSE_CLIENT_ID: process.env.ADSENSE_CLIENT_ID || '',
+    AD_SLOT_MOBILE_ID: process.env.AD_SLOT_MOBILE_ID || '',
+    AD_SLOT_DESKTOP_ID: process.env.AD_SLOT_DESKTOP_ID || ''
+  })};`);
+});
 
 // Auth endpoints
 app.post('/api/register', (req, res) => {

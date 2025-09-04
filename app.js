@@ -31,10 +31,11 @@ function initAdsense() {
   // Always ensure global array exists to avoid errors.
   window.adsbygoogle = window.adsbygoogle || [];
 
-  // Try manual configuration from localStorage (optional).
-  const client = localStorage.getItem('adsenseClientId');      // e.g., "ca-pub-xxxxxxxxxxxxxxxx"
-  const mobile = localStorage.getItem('adSlotMobileId');       // e.g., "1234567890"
-  const desktop = localStorage.getItem('adSlotDesktopId');     // e.g., "0987654321"
+  // IDs may come from the server-provided environment or localStorage overrides.
+  const env = window.ENV || {};
+  const client = env.ADSENSE_CLIENT_ID || localStorage.getItem('adsenseClientId');
+  const mobile = env.AD_SLOT_MOBILE_ID || localStorage.getItem('adSlotMobileId');
+  const desktop = env.AD_SLOT_DESKTOP_ID || localStorage.getItem('adSlotDesktopId');
 
   // If an AdSense client is provided, load the script (idempotent) and prepare footer slots.
   if (client) {

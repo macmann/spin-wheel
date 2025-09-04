@@ -32,8 +32,12 @@ Static pages for a 10‑segment spin wheel and admin panel live in `public/`.
 
 ### AdSense Configuration
 
-- Open `admin.html` and enter your **AdSense Client ID** and **ad unit IDs** under **AdSense Settings**.
-- The main `index.html` page reads these values from `localStorage`, so no ad keys are hard‑coded in the HTML.
+- Set the following in your `.env` file (see `.env.example`):
+  - `ADSENSE_CLIENT_ID`
+  - `AD_SLOT_MOBILE_ID`
+  - `AD_SLOT_DESKTOP_ID`
+- These IDs are exposed to the browser via `/env.js` and used by `app.js`.
+- You can still open `admin.html` to override them and store custom values in `localStorage`.
 
 ## Files
 ```

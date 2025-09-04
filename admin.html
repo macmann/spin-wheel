@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Admin – Wheel Settings & User Monitoring</title>
+<script src="/env.js"></script>
 <style>
 :root {
   --color-bg: #F4F6F8;
@@ -303,9 +304,13 @@ function updateToggleLabel() {
 }
 
 function loadAdsenseSettings() {
-  document.getElementById('adsenseClient').value = localStorage.getItem('adsenseClientId') || '';
-  document.getElementById('adsenseSlotMobile').value = localStorage.getItem('adSlotMobileId') || '';
-  document.getElementById('adsenseSlotDesktop').value = localStorage.getItem('adSlotDesktopId') || '';
+  const env = window.ENV || {};
+  document.getElementById('adsenseClient').value =
+    localStorage.getItem('adsenseClientId') || env.ADSENSE_CLIENT_ID || '';
+  document.getElementById('adsenseSlotMobile').value =
+    localStorage.getItem('adSlotMobileId') || env.AD_SLOT_MOBILE_ID || '';
+  document.getElementById('adsenseSlotDesktop').value =
+    localStorage.getItem('adSlotDesktopId') || env.AD_SLOT_DESKTOP_ID || '';
 }
 
 function saveAdSettings() {
