@@ -30,6 +30,11 @@ Static pages for a 10‑segment spin wheel and admin panel live in `public/`.
 - Open `public/index.html` to view and spin the wheel.
 - Use the “Go to Admin Panel” button to edit segment labels (stored in `localStorage`).
 
+### AdSense Configuration
+
+- Open `admin.html` and enter your **AdSense Client ID** and **ad unit IDs** under **AdSense Settings**.
+- The main `index.html` page reads these values from `localStorage`, so no ad keys are hard‑coded in the HTML.
+
 ## Files
 ```
 codex-project/
