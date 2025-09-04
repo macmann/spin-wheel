@@ -12,7 +12,11 @@ function addRow(seg = {}) {
     <td><input type="text" value="${seg.label || ''}" /></td>
     <td><input type="number" value="${seg.value || 0}" /></td>
     <td><input type="number" step="0.01" value="${seg.probability || 0}" /></td>
-    <td><input type="number" value="${seg.dailyCap || 0}" /></td>`;
+    <td><input type="number" value="${seg.dailyCap || 0}" /></td>
+    <td><button type="button" class="delete-segment">Delete</button></td>`;
+  tr.querySelector('.delete-segment').addEventListener('click', () => {
+    tr.remove();
+  });
   segTable.appendChild(tr);
 }
 
