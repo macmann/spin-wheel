@@ -298,6 +298,7 @@ button:focus {
       <button id="leaderboardBtn">Show Leaderboard</button>
       <button id="accountBtn">My Account</button>
       <button id="adminBtn">Admin Panel</button>
+      <button id="logoutBtn">Logout</button>
     </div>
     <div class="face back">
       <h2>Leaderboard</h2>
@@ -516,6 +517,12 @@ adminBtn.addEventListener('click', () => {
 });
 accountBtn.addEventListener('click', () => {
   window.location.href = 'account.html';
+});
+const logoutBtn = document.getElementById('logoutBtn');
+logoutBtn.addEventListener('click', () => {
+  localStorage.removeItem('userName');
+  localStorage.removeItem('userPhone');
+  window.location.href = 'login.html';
 });
 </script>
 </body>

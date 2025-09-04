@@ -65,6 +65,7 @@
     <h2>Reward History</h2>
     <ul id="history"></ul>
     <button id="backBtn">Back</button>
+    <button id="logoutBtn">Logout</button>
   </div>
   <script>
     const name = localStorage.getItem('userName');
@@ -102,6 +103,11 @@
     loadAccount();
     document.getElementById('backBtn').addEventListener('click', () => {
       window.location.href = 'index.html';
+    });
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('userName');
+      localStorage.removeItem('userPhone');
+      window.location.href = 'login.html';
     });
   </script>
 </body>
