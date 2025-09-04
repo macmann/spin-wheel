@@ -5,32 +5,74 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 400px; margin: 40px auto; }
-    form { margin-bottom: 24px; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0d0d2b;
+      font-family: system-ui, sans-serif;
+      color: #fff;
+    }
+    .card {
+      background: #1b1b3a;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      width: 90%;
+      max-width: 400px;
+    }
+    h1 {
+      margin-top: 0;
+      text-align: center;
+    }
+    h2 {
+      margin: 24px 0 8px;
+      font-size: 1.2rem;
+      color: #ccc;
+    }
+    form { margin-bottom: 16px; }
     label { display:block; margin:8px 0 4px; }
-    input { width:100%; padding:8px; margin-bottom:8px; }
-    button { padding:8px 16px; }
+    input {
+      width:100%;
+      padding:8px;
+      margin-bottom:8px;
+      border:none;
+      border-radius:8px;
+    }
+    button {
+      padding:8px 16px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      background:#e74c3c;
+      color:#fff;
+    }
   </style>
 </head>
 <body>
-  <h1>Spin Wheel Login</h1>
-  <section>
-    <h2>Register</h2>
-    <form id="registerForm">
-      <label>Name<input type="text" id="regName" required></label>
-      <label>Phone<input type="text" id="regPhone" required></label>
-      <label>Password<input type="password" id="regPass" required></label>
-      <button type="submit">Register</button>
-    </form>
-  </section>
-  <section>
-    <h2>Login</h2>
-    <form id="loginForm">
-      <label>Phone<input type="text" id="logPhone" required></label>
-      <label>Password<input type="password" id="logPass" required></label>
-      <button type="submit">Login</button>
-    </form>
-  </section>
+  <div class="card">
+    <h1>Spin Wheel Login</h1>
+    <section>
+      <h2>Register</h2>
+      <form id="registerForm">
+        <label>Name<input type="text" id="regName" required></label>
+        <label>Phone<input type="text" id="regPhone" required></label>
+        <label>Password<input type="password" id="regPass" required></label>
+        <button type="submit">Register</button>
+      </form>
+    </section>
+    <section>
+      <h2>Login</h2>
+      <form id="loginForm">
+        <label>Phone<input type="text" id="logPhone" required></label>
+        <label>Password<input type="password" id="logPass" required></label>
+        <button type="submit">Login</button>
+      </form>
+    </section>
+  </div>
   <script>
     const regForm = document.getElementById('registerForm');
     const loginForm = document.getElementById('loginForm');
