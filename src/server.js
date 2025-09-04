@@ -91,6 +91,14 @@ app.get('/api/users/:phone', (req, res) => {
   res.json({ phone, name: user?.name || null, points: user?.points || 0 });
 });
 
+// User reward history
+app.get('/api/users/:phone/logs', (req, res) => {
+  const phone = req.params.phone;
+  const logs = readJSON(logsPath).filter(l => l.userId === phone);
+  const history = logs.map(l => ({ rewardType: l.rewardType, timestamp: l.timestamp }));
+  res.json(history);
+});
+
 // Leaderboard
 app.get('/api/leaderboard', (req, res) => {
   const users = readJSON(usersPath);

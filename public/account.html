@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Account</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; color: #333; }
+    ul { list-style: none; padding: 0; }
+    li { padding: 8px 0; border-bottom: 1px solid #ccc; }
+    button { margin-top: 16px; padding: 8px 16px; }
+  </style>
+</head>
+<body>
+  <h1>My Account</h1>
+  <p id="user-name"></p>
+  <p id="user-points"></p>
+  <h2>Reward History</h2>
+  <ul id="history"></ul>
+  <button id="backBtn">Back</button>
+  <script>
+    const name = localStorage.getItem('userName');
+    const phone = localStorage.getItem('userPhone');
+    if (!phone) {
+      window.location.href = 'login.html';
+    }
+    document.getElementById('user-name').textContent = 'User: ' + name;
+
+    async function loadAccount() {
+      try {
+        const userRes = await fetch(`/api/users/${phone}`);
+        const userData = await userRes.json();
+        document.getElementById('user-points').textContent = 'Total Points: ' + userData.points;
+        const res = await fetch(`/api/users/${phone}/logs`);
+        const logs = await res.json();
+        const history = document.getElementById('history');
+        if (logs.length === 0) {
+          const li = document.createElement('li');
+          li.textContent = 'No rewards yet';
+          history.appendChild(li);
+        } else {
+          logs.forEach(l => {
+            const li = document.createElement('li');
+            const date = new Date(l.timestamp).toLocaleString();
+            li.textContent = `${date} - ${l.rewardType}`;
+            history.appendChild(li);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    loadAccount();
+    document.getElementById('backBtn').addEventListener('click', () => {
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>

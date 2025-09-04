@@ -284,6 +284,7 @@ button:focus {
       <h1>LUCKY WHEEL</h1>
       <p class="subtitle">Spin the wheel to win a prize!</p>
       <p id="user-id">User:</p>
+      <p id="user-points">Total Points: 0</p>
 
       <div id="wheel-wrapper">
         <div class="axle"></div>
@@ -295,6 +296,7 @@ button:focus {
       <button id="spin">Spin</button>
       <div id="result" aria-live="polite">Spin to win points!</div>
       <button id="leaderboardBtn">Show Leaderboard</button>
+      <button id="accountBtn">My Account</button>
       <button id="adminBtn">Admin Panel</button>
     </div>
     <div class="face back">
@@ -334,6 +336,21 @@ function getUser() {
 const user = getUser();
 const userId = user.phone;
 document.getElementById('user-id').textContent = 'User: ' + user.name;
+const userPointsEl = document.getElementById('user-points');
+let totalPoints = 0;
+
+async function loadUserPoints() {
+  try {
+    const res = await fetch(`/api/users/${userId}`);
+    const data = await res.json();
+    totalPoints = data.points;
+    userPointsEl.textContent = 'Total Points: ' + totalPoints;
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+loadUserPoints();
 
 let fireworks;
 const popup = document.getElementById('win-popup');
@@ -440,11 +457,14 @@ spinBtn.addEventListener('click', () => {
       resultEl.textContent = `You won: ${seg.label}`;
       showPopup(seg.value);
       try {
-        await fetch('/api/logs', {
+        const res = await fetch('/api/logs', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId, rewardType: seg.label })
       });
+        const data = await res.json();
+        totalPoints = data.points;
+        userPointsEl.textContent = 'Total Points: ' + totalPoints;
     } catch (err) {
       console.error(err);
     }
@@ -454,6 +474,7 @@ spinBtn.addEventListener('click', () => {
 // --- Leaderboard flip ---
 const cardEl = document.getElementById('card');
 const leaderboardBtn = document.getElementById('leaderboardBtn');
+const accountBtn = document.getElementById('accountBtn');
 const backBtn = document.getElementById('backBtn');
 const tbody = document.querySelector('#board tbody');
 
@@ -492,6 +513,9 @@ backBtn.addEventListener('click', showWheel);
 const adminBtn = document.getElementById('adminBtn');
 adminBtn.addEventListener('click', () => {
   window.location.href = 'admin.html';
+});
+accountBtn.addEventListener('click', () => {
+  window.location.href = 'account.html';
 });
 </script>
 </body>
