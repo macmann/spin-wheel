@@ -11,6 +11,7 @@ const dataDir = path.join(__dirname, '../data');
 const configPath = path.join(dataDir, 'config.json');
 const logsPath = path.join(dataDir, 'logs.json');
 const usersPath = path.join(dataDir, 'users.json');
+const rewardsPath = path.join(dataDir, 'rewards.json');
 
 function readJSON(p) {
   return JSON.parse(fs.readFileSync(p, 'utf-8'));
@@ -36,7 +37,7 @@ app.post('/api/register', (req, res) => {
     return res.status(400).json({ error: 'user exists' });
   }
   const hash = crypto.createHash('sha256').update(password).digest('hex');
-  users[phone] = { name, password: hash, points: 0 };
+  users[phone] = { name, password: hash, points: 0, redeemed: {} };
   writeJSON(usersPath, users);
   res.json({ status: 'registered' });
 });
@@ -59,6 +60,52 @@ app.get('/api/config', (req, res) => {
 app.post('/api/config', (req, res) => {
   writeJSON(configPath, req.body);
   res.json({ status: 'ok' });
+});
+
+// Redemption rewards configuration (admin)
+app.get('/api/rewards', (req, res) => {
+  res.json(readJSON(rewardsPath));
+});
+app.post('/api/rewards', (req, res) => {
+  writeJSON(rewardsPath, req.body);
+  res.json({ status: 'ok' });
+});
+
+// User reward listings
+app.get('/api/rewards/:phone', (req, res) => {
+  const rewards = readJSON(rewardsPath);
+  const users = readJSON(usersPath);
+  const phone = req.params.phone;
+  const user = users[phone] || { redeemed: {} };
+  const redeemed = user.redeemed || {};
+  const data = rewards.map(r => ({
+    id: r.id,
+    name: r.name,
+    cost: r.cost,
+    redeemedCode: redeemed[r.id] || null,
+    available: r.codes.length
+  }));
+  res.json(data);
+});
+
+app.post('/api/redeem', (req, res) => {
+  const { phone, rewardId } = req.body;
+  const rewards = readJSON(rewardsPath);
+  const users = readJSON(usersPath);
+  const user = users[phone];
+  if (!user) return res.status(400).json({ error: 'user not found' });
+  user.redeemed = user.redeemed || {};
+  if (user.redeemed[rewardId]) return res.status(400).json({ error: 'already redeemed' });
+  const reward = rewards.find(r => r.id === rewardId);
+  if (!reward) return res.status(400).json({ error: 'reward not found' });
+  if (user.points < reward.cost) return res.status(400).json({ error: 'not enough points' });
+  if (reward.codes.length === 0) return res.status(400).json({ error: 'no codes left' });
+  const code = reward.codes.shift();
+  user.points -= reward.cost;
+  user.redeemed[rewardId] = code;
+  writeJSON(usersPath, users);
+  writeJSON(rewardsPath, rewards);
+  res.json({ status: 'ok', code, points: user.points });
 });
 
 // Logs endpoints

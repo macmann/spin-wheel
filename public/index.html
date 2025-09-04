@@ -315,6 +315,7 @@ button:focus {
       <div id="result" aria-live="polite">Spin to win points!</div>
       <button id="leaderboardBtn">Show Leaderboard</button>
       <button id="accountBtn">My Account</button>
+      <button id="redeemBtn">Redeem Rewards</button>
       <button id="adminBtn">Admin Panel</button>
       <button id="logoutBtn">Logout</button>
     </div>
@@ -494,6 +495,7 @@ spinBtn.addEventListener('click', () => {
 const cardEl = document.getElementById('card');
 const leaderboardBtn = document.getElementById('leaderboardBtn');
 const accountBtn = document.getElementById('accountBtn');
+const redeemBtn = document.getElementById('redeemBtn');
 const backBtn = document.getElementById('backBtn');
 const tbody = document.querySelector('#board tbody');
 
@@ -532,6 +534,9 @@ backBtn.addEventListener('click', showWheel);
 const adminBtn = document.getElementById('adminBtn');
 adminBtn.addEventListener('click', () => {
   window.location.href = 'admin.html';
+});
+redeemBtn.addEventListener('click', () => {
+  window.location.href = 'redemption.html';
 });
 accountBtn.addEventListener('click', () => {
   window.location.href = 'account.html';
