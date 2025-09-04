@@ -321,21 +321,19 @@ let config;
 let segments = [];
 const colors = ["#ff9f1c", "#e71d36", "#2ec4b6", "#3a86ff", "#8338ec", "#ff006e", "#0ead69", "#fb5607"];
 
-function getUserName() {
-  const stored = localStorage.getItem('userName');
-  if (stored) return stored;
-  let name = '';
-  while (!name) {
-    name = prompt('Enter your name');
-    if (name === null) name = '';
-    name = name.trim();
+function getUser() {
+  const name = localStorage.getItem('userName');
+  const phone = localStorage.getItem('userPhone');
+  if (!name || !phone) {
+    window.location.href = 'login.html';
+    return { name: '', phone: '' };
   }
-  localStorage.setItem('userName', name);
-  return name;
+  return { name, phone };
 }
 
-const userId = getUserName();
-document.getElementById('user-id').textContent = 'User: ' + userId;
+const user = getUser();
+const userId = user.phone;
+document.getElementById('user-id').textContent = 'User: ' + user.name;
 
 let fireworks;
 const popup = document.getElementById('win-popup');
@@ -471,7 +469,7 @@ async function loadLeaderboard() {
     } else {
       board.forEach(row => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${row.userId}</td><td>${row.points}</td>`;
+        tr.innerHTML = `<td>${row.name}</td><td>${row.points}</td>`;
         tbody.appendChild(tr);
       });
     }

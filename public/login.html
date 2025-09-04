@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 400px; margin: 40px auto; }
+    form { margin-bottom: 24px; }
+    label { display:block; margin:8px 0 4px; }
+    input { width:100%; padding:8px; margin-bottom:8px; }
+    button { padding:8px 16px; }
+  </style>
+</head>
+<body>
+  <h1>Spin Wheel Login</h1>
+  <section>
+    <h2>Register</h2>
+    <form id="registerForm">
+      <label>Name<input type="text" id="regName" required></label>
+      <label>Phone<input type="text" id="regPhone" required></label>
+      <label>Password<input type="password" id="regPass" required></label>
+      <button type="submit">Register</button>
+    </form>
+  </section>
+  <section>
+    <h2>Login</h2>
+    <form id="loginForm">
+      <label>Phone<input type="text" id="logPhone" required></label>
+      <label>Password<input type="password" id="logPass" required></label>
+      <button type="submit">Login</button>
+    </form>
+  </section>
+  <script>
+    const regForm = document.getElementById('registerForm');
+    const loginForm = document.getElementById('loginForm');
+    regForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = {
+        name: document.getElementById('regName').value.trim(),
+        phone: document.getElementById('regPhone').value.trim(),
+        password: document.getElementById('regPass').value
+      };
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert('Registered successfully. Please login.');
+        regForm.reset();
+      } else {
+        alert(data.error || 'Registration failed');
+      }
+    });
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = {
+        phone: document.getElementById('logPhone').value.trim(),
+        password: document.getElementById('logPass').value
+      };
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem('userName', data.name);
+        localStorage.setItem('userPhone', data.phone);
+        window.location.href = 'index.html';
+      } else {
+        alert(data.error || 'Login failed');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -5,7 +5,7 @@ async function loadBoard() {
   tbody.innerHTML = '';
   board.forEach(row => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${row.userId}</td><td>${row.points}</td>`;
+    tr.innerHTML = `<td>${row.name}</td><td>${row.points}</td>`;
     tbody.appendChild(tr);
   });
 }

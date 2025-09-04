@@ -36,7 +36,8 @@ async function loadLogs() {
   logsTable.innerHTML = '';
   logs.forEach(l => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${l.userId}</td><td>${l.rewardType}</td><td>${l.timestamp}</td>`;
+    const name = l.userName || l.userId;
+    tr.innerHTML = `<td>${name}</td><td>${l.rewardType}</td><td>${l.timestamp}</td>`;
     logsTable.appendChild(tr);
   });
 }
