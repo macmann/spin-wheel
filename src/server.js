@@ -114,13 +114,21 @@ app.get('/api/rewards/:phone', (req, res) => {
   const phone = req.params.phone;
   const user = users[phone] || { redeemed: {} };
   const redeemed = user.redeemed || {};
-  const data = rewards.map(r => ({
-    id: r.id,
-    name: r.name,
-    cost: r.cost,
-    redeemedCode: redeemed[r.id] || null,
-    available: r.codes.length
-  }));
+  const data = rewards.map(r => {
+    const available = (r.codes || []).reduce((sum, c) => {
+      if (typeof c === 'string') return sum + 1;
+      const amt = Number(c.amount) || 0;
+      const red = Number(c.redeemed) || 0;
+      return sum + Math.max(0, amt - red);
+    }, 0);
+    return {
+      id: r.id,
+      name: r.name,
+      cost: r.cost,
+      redeemedCode: redeemed[r.id] || null,
+      available
+    };
+  });
   res.json(data);
 });
 
@@ -135,8 +143,17 @@ app.post('/api/redeem', (req, res) => {
   const reward = rewards.find(r => r.id === rewardId);
   if (!reward) return res.status(400).json({ error: 'reward not found' });
   if (user.points < reward.cost) return res.status(400).json({ error: 'not enough points' });
-  if (reward.codes.length === 0) return res.status(400).json({ error: 'no codes left' });
-  const code = reward.codes.shift();
+  if (!Array.isArray(reward.codes) || reward.codes.length === 0)
+    return res.status(400).json({ error: 'no codes left' });
+  let codeEntry;
+  if (typeof reward.codes[0] === 'string') {
+    codeEntry = { code: reward.codes.shift() };
+  } else {
+    codeEntry = reward.codes.find(c => (Number(c.amount) || 0) > (Number(c.redeemed) || 0));
+    if (!codeEntry) return res.status(400).json({ error: 'no codes left' });
+    codeEntry.redeemed = (Number(codeEntry.redeemed) || 0) + 1;
+  }
+  const code = codeEntry.code;
   user.points -= reward.cost;
   user.redeemed[rewardId] = code;
   writeJSON(usersPath, users);
