@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
+  <title>Register</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -29,9 +29,10 @@
       width: 100%;
       transform-style: preserve-3d;
       transition: transform 0.8s;
+      transform: rotateY(-180deg);
     }
-    .card.flipped {
-      transform: rotateY(180deg);
+    .card.show {
+      transform: rotateY(0deg);
     }
     h1 { margin-top: 0; text-align: center; }
     form { margin-bottom: 16px; }
@@ -62,45 +63,55 @@
 <body>
   <div class="scene">
     <div id="card" class="card">
-      <h1>Spin Wheel Login</h1>
-      <form id="loginForm">
-        <label>Phone<input type="text" id="logPhone" required></label>
-        <label>Password<input type="password" id="logPass" required></label>
-        <button type="submit">Login</button>
+      <h1>Create Account</h1>
+      <form id="registerForm">
+        <label>Name<input type="text" id="regName" required></label>
+        <label>Phone<input type="text" id="regPhone" required></label>
+        <label>Password<input type="password" id="regPass" required></label>
+        <button type="submit">Register</button>
       </form>
-      <button id="createAccount" class="link-btn">Create Account</button>
+      <button id="loginLink" class="link-btn">Back to Login</button>
     </div>
   </div>
   <script>
     const card = document.getElementById('card');
-    const loginForm = document.getElementById('loginForm');
-    const createBtn = document.getElementById('createAccount');
+    const regForm = document.getElementById('registerForm');
+    const loginLink = document.getElementById('loginLink');
 
-    loginForm.addEventListener('submit', async (e) => {
+    window.addEventListener('DOMContentLoaded', () => {
+      requestAnimationFrame(() => {
+        card.classList.add('show');
+      });
+    });
+
+    regForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const body = {
-        phone: document.getElementById('logPhone').value.trim(),
-        password: document.getElementById('logPass').value
+        name: document.getElementById('regName').value.trim(),
+        phone: document.getElementById('regPhone').value.trim(),
+        password: document.getElementById('regPass').value
       };
-      const res = await fetch('/api/login', {
+      const res = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
       const data = await res.json();
       if (res.ok) {
-        localStorage.setItem('userName', data.name);
-        localStorage.setItem('userPhone', data.phone);
-        window.location.href = 'index.html';
+        alert('Registered successfully. Please login.');
+        card.classList.remove('show');
+        card.addEventListener('transitionend', () => {
+          window.location.href = 'login.html';
+        }, { once: true });
       } else {
-        alert(data.error || 'Login failed');
+        alert(data.error || 'Registration failed');
       }
     });
 
-    createBtn.addEventListener('click', () => {
-      card.classList.add('flipped');
+    loginLink.addEventListener('click', () => {
+      card.classList.remove('show');
       card.addEventListener('transitionend', () => {
-        window.location.href = 'register.html';
+        window.location.href = 'login.html';
       }, { once: true });
     });
   </script>
