@@ -10,6 +10,33 @@ const logoPreview = document.getElementById('logoPreview');
 let logoData = '';
 let rewardCounter = 1;
 
+function formatCodes(codes = []) {
+  return (codes || []).map(c => `${c.code}:${c.amount}`).join(',');
+}
+
+function parseCodes(str, existing = []) {
+  return str
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(pair => {
+      const [code, amtStr] = pair.split(':').map(t => t.trim());
+      const prev = existing.find(c => c.code === code);
+      return {
+        code,
+        amount: Number(amtStr) || 0,
+        redeemed: prev ? prev.redeemed || 0 : 0
+      };
+    });
+}
+
+function computeAvailability(codes = []) {
+  return codes.reduce(
+    (sum, c) => sum + Math.max(0, (c.amount || 0) - (c.redeemed || 0)),
+    0
+  );
+}
+
 function addRow(seg = {}) {
   const tr = document.createElement('tr');
   tr.innerHTML = `
@@ -27,11 +54,22 @@ function addRow(seg = {}) {
 function addRewardRow(r = {}) {
   const tr = document.createElement('tr');
   tr.dataset.id = r.id || rewardCounter++;
+  tr.dataset.codes = JSON.stringify(r.codes || []);
   tr.innerHTML = `
     <td><input type="text" value="${r.name || ''}" /></td>
     <td><input type="number" value="${r.cost || 0}" /></td>
-    <td><input type="text" value="${(r.codes || []).join(',')}" /></td>
+    <td><input type="text" class="codes-input" value="${formatCodes(r.codes)}" /></td>
+    <td class="availability"></td>
     <td><button type="button" class="delete-reward">Delete</button></td>`;
+  const codesInput = tr.querySelector('.codes-input');
+  const availabilityCell = tr.querySelector('.availability');
+  function updateAvailability() {
+    const existing = JSON.parse(tr.dataset.codes || '[]');
+    const codes = parseCodes(codesInput.value, existing);
+    availabilityCell.textContent = computeAvailability(codes);
+  }
+  codesInput.addEventListener('input', updateAvailability);
+  updateAvailability();
   tr.querySelector('.delete-reward').addEventListener('click', () => {
     tr.remove();
   });
@@ -119,11 +157,14 @@ document.getElementById('save-rewards').addEventListener('click', async () => {
   const rows = Array.from(redeemTable.querySelectorAll('tr'));
   const rewards = rows.map(r => {
     const inputs = r.querySelectorAll('input');
+    const existing = JSON.parse(r.dataset.codes || '[]');
+    const codes = parseCodes(inputs[2].value, existing);
+    r.dataset.codes = JSON.stringify(codes);
     return {
       id: Number(r.dataset.id),
       name: inputs[0].value,
       cost: Number(inputs[1].value),
-      codes: inputs[2].value.split(',').map(s => s.trim()).filter(Boolean)
+      codes
     };
   });
   await fetch('/api/rewards', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(rewards) });
