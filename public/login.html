@@ -57,11 +57,17 @@
       margin-top:8px;
       text-decoration:underline;
     }
+    #logo {
+      display:none;
+      max-width:150px;
+      margin:0 auto 16px;
+    }
   </style>
 </head>
 <body>
   <div class="scene">
     <div id="card" class="card">
+      <img id="logo" alt="Logo" />
       <h1>Spin Wheel Login</h1>
       <form id="loginForm">
         <label>Phone<input type="text" id="logPhone" required></label>
@@ -75,6 +81,18 @@
     const card = document.getElementById('card');
     const loginForm = document.getElementById('loginForm');
     const createBtn = document.getElementById('createAccount');
+
+    // Load logo from admin settings
+    fetch('/api/config')
+      .then(r => r.json())
+      .then(cfg => {
+        if (cfg.logo) {
+          const logoEl = document.getElementById('logo');
+          logoEl.src = cfg.logo;
+          logoEl.style.display = 'block';
+        }
+      })
+      .catch(console.error);
 
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
