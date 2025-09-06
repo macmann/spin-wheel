@@ -3,56 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Panel</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Admin Settings – Rewards</title>
+  <link rel="stylesheet" href="admin.css" />
 </head>
-<body class="admin-page">
-  <div class="admin-container">
-    <h1>Admin Panel</h1>
-    <label><input type="checkbox" id="enabled" /> Enable Daily Spin</label>
-    <label>Reset Time: <input type="time" id="resetTime" value="00:00" /></label>
-
-    <label>Spins per Interval: <input type="number" id="spinsPerInterval" min="1" value="1" /></label>
-    <label>Interval (hours): <input type="number" id="intervalHours" min="1" value="24" /></label>
-
-    <h2>Logo</h2>
-    <input type="file" id="logoInput" accept="image/png, image/jpeg" />
-    <img id="logoPreview" alt="Logo preview" style="max-width:100px; display:none;" />
-
-    <h2>Reward Segments</h2>
-    <div class="table-wrapper">
-      <table id="segments-table">
-        <thead>
-          <tr><th>Label</th><th>Value</th><th>Probability</th><th>Daily Cap</th><th>Action</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+<body>
+  <header>
+    <h1>Admin Settings – Rewards</h1>
+    <div class="controls">
+      <input type="text" id="search" placeholder="Search by name" />
+      <select id="filter">
+        <option value="all">All</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+      <select id="sort">
+        <option value="priority">Priority</option>
+        <option value="name">Name</option>
+        <option value="costPoints">Cost</option>
+      </select>
+      <button id="newRewardBtn">New Reward</button>
     </div>
-    <button id="add-segment">Add Segment</button>
-    <button id="save-config">Save Config</button>
+  </header>
 
-    <h2>Redemption Rewards</h2>
-    <div class="table-wrapper">
-      <table id="redeem-table">
-        <thead>
-          <tr><th>Name</th><th>Cost</th><th>Codes (code:amount, comma separated)</th><th>Available</th><th>Action</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-    <button id="add-reward">Add Reward</button>
-    <button id="save-rewards">Save Rewards</button>
+  <table id="rewardsTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Cost Points</th>
+        <th>Active</th>
+        <th>Priority</th>
+        <th>Daily Cap</th>
+        <th>Available Codes</th>
+        <th>Used Codes</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-    <h2>Activity Logs</h2>
-    <div class="table-wrapper">
-      <table id="logs-table">
-        <thead><tr><th>User</th><th>Reward</th><th>Time</th></tr></thead>
-        <tbody></tbody>
-      </table>
+  <div id="rewardModal" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="modalTitle">New Reward</h2>
+      <form id="rewardForm">
+        <label>Name<input type="text" name="name" required /></label>
+        <label>Cost Points<input type="number" name="costPoints" min="1" required /></label>
+        <label>Description<textarea name="description"></textarea></label>
+        <label>Active<input type="checkbox" name="isActive" checked /></label>
+        <label>Priority<input type="number" name="displayPriority" value="10" /></label>
+        <label>Daily Cap<input type="number" name="dailyRedeemCap" value="0" /></label>
+        <div class="actions">
+          <button type="submit">Save</button>
+          <button type="button" id="cancelModal">Cancel</button>
+        </div>
+      </form>
     </div>
-    <a href="/api/reports/export?type=reward" target="_blank">Export Reward CSV</a>
-    <a href="/api/reports/export?type=summary" target="_blank">Export Summary CSV</a>
   </div>
+
+  <div id="toast" class="toast"></div>
 
   <script src="admin.js"></script>
 </body>

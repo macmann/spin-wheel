@@ -1,176 +1,203 @@
-const enabledEl = document.getElementById('enabled');
-const resetEl = document.getElementById('resetTime');
-const spinsEl = document.getElementById('spinsPerInterval');
-const intervalEl = document.getElementById('intervalHours');
-const segTable = document.getElementById('segments-table').querySelector('tbody');
-const logsTable = document.getElementById('logs-table').querySelector('tbody');
-const redeemTable = document.getElementById('redeem-table').querySelector('tbody');
-const logoInput = document.getElementById('logoInput');
-const logoPreview = document.getElementById('logoPreview');
-let logoData = '';
-let rewardCounter = 1;
+const searchInput = document.getElementById('search');
+const filterSelect = document.getElementById('filter');
+const sortSelect = document.getElementById('sort');
+const tbody = document.querySelector('#rewardsTable tbody');
+const modal = document.getElementById('rewardModal');
+const modalTitle = document.getElementById('modalTitle');
+const form = document.getElementById('rewardForm');
+const cancelModal = document.getElementById('cancelModal');
+const toastEl = document.getElementById('toast');
+let rewards = [];
+let editingReward = null;
 
-function formatCodes(codes = []) {
-  return (codes || []).map(c => `${c.code}:${c.amount}`).join(',');
+function showToast(msg, error) {
+  toastEl.textContent = msg;
+  toastEl.style.background = error ? '#c0392b' : '#333';
+  toastEl.classList.add('show');
+  setTimeout(() => toastEl.classList.remove('show'), 3000);
 }
 
-function parseCodes(str, existing = []) {
-  return str
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean)
-    .map(pair => {
-      const [code, amtStr] = pair.split(':').map(t => t.trim());
-      const prev = existing.find(c => c.code === code);
-      return {
-        code,
-        amount: Number(amtStr) || 0,
-        redeemed: prev ? prev.redeemed || 0 : 0
-      };
+function openModal(reward) {
+  editingReward = reward || null;
+  modal.classList.remove('hidden');
+  modalTitle.textContent = reward ? 'Edit Reward' : 'New Reward';
+  form.name.value = reward?.name || '';
+  form.costPoints.value = reward?.costPoints || '';
+  form.description.value = reward?.description || '';
+  form.isActive.checked = reward?.isActive ?? true;
+  form.displayPriority.value = reward?.displayPriority ?? 10;
+  form.dailyRedeemCap.value = reward?.dailyRedeemCap ?? 0;
+}
+
+cancelModal.addEventListener('click', () => modal.classList.add('hidden'));
+
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  const data = {
+    name: form.name.value.trim(),
+    costPoints: Number(form.costPoints.value),
+    description: form.description.value.trim(),
+    isActive: form.isActive.checked,
+    displayPriority: Number(form.displayPriority.value),
+    dailyRedeemCap: Number(form.dailyRedeemCap.value)
+  };
+  const url = editingReward ? `/rewards/${editingReward.id}` : '/rewards';
+  const method = editingReward ? 'PATCH' : 'POST';
+  const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+  if (res.ok) {
+    modal.classList.add('hidden');
+    showToast('Saved');
+    await loadRewards();
+  } else {
+    const err = await res.json();
+    showToast(err.message || 'Error', true);
+  }
+});
+
+function makeEditable(td, reward, field) {
+  const type = field === 'name' ? 'text' : 'number';
+  const input = document.createElement('input');
+  input.type = type;
+  input.value = reward[field];
+  td.textContent = '';
+  td.appendChild(input);
+  const saveBtn = document.createElement('button');
+  saveBtn.textContent = 'Save';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  td.appendChild(saveBtn);
+  td.appendChild(cancelBtn);
+
+  saveBtn.addEventListener('click', async () => {
+    let value = type === 'text' ? input.value.trim() : Number(input.value);
+    if (field === 'name' && !value) { showToast('Name required', true); return; }
+    const payload = { [field]: value };
+    const res = await fetch(`/rewards/${reward.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    if (res.ok) {
+      reward[field] = type === 'text' ? value : Number(value);
+      showToast('Saved');
+      await loadRewards();
+    } else {
+      const err = await res.json();
+      showToast(err.message || 'Error', true);
+      await loadRewards();
+    }
+  });
+  cancelBtn.addEventListener('click', () => renderTable());
+}
+
+function renderTable() {
+  tbody.innerHTML = '';
+  let list = [...rewards];
+  const q = searchInput.value.toLowerCase();
+  if (q) list = list.filter(r => r.name.toLowerCase().includes(q));
+  const f = filterSelect.value;
+  if (f === 'active') list = list.filter(r => r.isActive);
+  if (f === 'inactive') list = list.filter(r => !r.isActive);
+  const s = sortSelect.value;
+  list.sort((a, b) => {
+    if (s === 'name') return a.name.localeCompare(b.name);
+    if (s === 'costPoints') return a.costPoints - b.costPoints;
+    return a.displayPriority - b.displayPriority;
+  });
+  for (const r of list) {
+    const tr = document.createElement('tr');
+
+    const nameTd = document.createElement('td');
+    nameTd.textContent = r.name;
+    nameTd.dataset.label = 'Name';
+    nameTd.addEventListener('click', () => makeEditable(nameTd, r, 'name'));
+    tr.appendChild(nameTd);
+
+    const costTd = document.createElement('td');
+    costTd.textContent = r.costPoints;
+    costTd.dataset.label = 'Cost Points';
+    costTd.addEventListener('click', () => makeEditable(costTd, r, 'costPoints'));
+    tr.appendChild(costTd);
+
+    const activeTd = document.createElement('td');
+    activeTd.dataset.label = 'Active';
+    const activeChk = document.createElement('input');
+    activeChk.type = 'checkbox';
+    activeChk.checked = r.isActive;
+    activeChk.addEventListener('change', async () => {
+      activeChk.disabled = true;
+      const res = await fetch(`/rewards/${r.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isActive: activeChk.checked }) });
+      if (res.ok) {
+        r.isActive = activeChk.checked;
+        showToast('Updated');
+      } else {
+        activeChk.checked = !activeChk.checked;
+        showToast('Error', true);
+      }
+      activeChk.disabled = false;
     });
-}
+    activeTd.appendChild(activeChk);
+    tr.appendChild(activeTd);
 
-function computeAvailability(codes = []) {
-  return codes.reduce(
-    (sum, c) => sum + Math.max(0, (c.amount || 0) - (c.redeemed || 0)),
-    0
-  );
-}
+    const priTd = document.createElement('td');
+    priTd.textContent = r.displayPriority;
+    priTd.dataset.label = 'Priority';
+    priTd.addEventListener('click', () => makeEditable(priTd, r, 'displayPriority'));
+    tr.appendChild(priTd);
 
-function addRow(seg = {}) {
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td><input type="text" value="${seg.label || ''}" /></td>
-    <td><input type="number" value="${seg.value || 0}" /></td>
-    <td><input type="number" step="0.01" value="${seg.probability || 0}" /></td>
-    <td><input type="number" value="${seg.dailyCap || 0}" /></td>
-    <td><button type="button" class="delete-segment">Delete</button></td>`;
-  tr.querySelector('.delete-segment').addEventListener('click', () => {
-    tr.remove();
-  });
-  segTable.appendChild(tr);
-}
+    const capTd = document.createElement('td');
+    capTd.textContent = r.dailyRedeemCap;
+    capTd.dataset.label = 'Daily Cap';
+    capTd.addEventListener('click', () => makeEditable(capTd, r, 'dailyRedeemCap'));
+    tr.appendChild(capTd);
 
-function addRewardRow(r = {}) {
-  const tr = document.createElement('tr');
-  tr.dataset.id = r.id || rewardCounter++;
-  tr.dataset.codes = JSON.stringify(r.codes || []);
-  tr.innerHTML = `
-    <td><input type="text" value="${r.name || ''}" /></td>
-    <td><input type="number" value="${r.cost || 0}" /></td>
-    <td><input type="text" class="codes-input" value="${formatCodes(r.codes)}" /></td>
-    <td class="availability"></td>
-    <td><button type="button" class="delete-reward">Delete</button></td>`;
-  const codesInput = tr.querySelector('.codes-input');
-  const availabilityCell = tr.querySelector('.availability');
-  function updateAvailability() {
-    const existing = JSON.parse(tr.dataset.codes || '[]');
-    const codes = parseCodes(codesInput.value, existing);
-    availabilityCell.textContent = computeAvailability(codes);
+    const availTd = document.createElement('td');
+    availTd.textContent = r.unusedCodes || 0;
+    availTd.dataset.label = 'Available Codes';
+    tr.appendChild(availTd);
+
+    const usedTd = document.createElement('td');
+    usedTd.textContent = r.usedCodes || 0;
+    usedTd.dataset.label = 'Used Codes';
+    tr.appendChild(usedTd);
+
+    const actTd = document.createElement('td');
+    actTd.dataset.label = 'Actions';
+    const manage = document.createElement('a');
+    manage.href = `codes.html?rewardId=${r.id}`;
+    manage.textContent = 'Manage Codes';
+    actTd.appendChild(manage);
+    const editBtn = document.createElement('button');
+    editBtn.textContent = 'Edit';
+    editBtn.addEventListener('click', () => openModal(r));
+    actTd.appendChild(editBtn);
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'Delete';
+    delBtn.addEventListener('click', async () => {
+      if (!confirm('Delete this reward?')) return;
+      const res = await fetch(`/rewards/${r.id}`, { method: 'DELETE' });
+      if (res.status === 409) {
+        const body = await res.json();
+        showToast(body.message || 'Has used codes', true);
+      } else if (res.ok) {
+        showToast('Deleted');
+        await loadRewards();
+      } else {
+        showToast('Error', true);
+      }
+    });
+    actTd.appendChild(delBtn);
+    tr.appendChild(actTd);
+
+    tbody.appendChild(tr);
   }
-  codesInput.addEventListener('input', updateAvailability);
-  updateAvailability();
-  tr.querySelector('.delete-reward').addEventListener('click', () => {
-    tr.remove();
-  });
-  redeemTable.appendChild(tr);
 }
 
-async function loadConfig() {
-  const res = await fetch('/api/config');
-  const cfg = await res.json();
-  enabledEl.checked = cfg.enabled;
-  resetEl.value = cfg.resetTime;
-  spinsEl.value = cfg.spinsPerInterval || 1;
-  intervalEl.value = cfg.intervalHours || 24;
-  logoData = cfg.logo || '';
-  if (logoData) {
-    logoPreview.src = logoData;
-    logoPreview.style.display = 'block';
-  }
-  segTable.innerHTML = '';
-  (cfg.rewardSegments || []).forEach(s => addRow(s));
-}
+searchInput.addEventListener('input', renderTable);
+filterSelect.addEventListener('change', renderTable);
+sortSelect.addEventListener('change', renderTable);
+document.getElementById('newRewardBtn').addEventListener('click', () => openModal());
 
 async function loadRewards() {
-  const res = await fetch('/api/rewards');
-  const rewards = await res.json();
-  redeemTable.innerHTML = '';
-  rewardCounter = 1;
-  rewards.forEach(r => {
-    rewardCounter = Math.max(rewardCounter, (r.id || 0) + 1);
-    addRewardRow(r);
-  });
+  const res = await fetch('/rewards');
+  rewards = await res.json();
+  renderTable();
 }
 
-async function loadLogs() {
-  const res = await fetch('/api/logs');
-  const logs = await res.json();
-  logsTable.innerHTML = '';
-  logs.forEach(l => {
-    const tr = document.createElement('tr');
-    const name = l.userName || l.userId;
-    tr.innerHTML = `<td>${name}</td><td>${l.rewardType}</td><td>${l.timestamp}</td>`;
-    logsTable.appendChild(tr);
-  });
-}
-
-document.getElementById('add-segment').addEventListener('click', () => addRow());
-document.getElementById('add-reward').addEventListener('click', () => addRewardRow());
-
-logoInput.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    logoData = ev.target.result;
-    logoPreview.src = logoData;
-    logoPreview.style.display = 'block';
-  };
-  reader.readAsDataURL(file);
-});
-
-document.getElementById('save-config').addEventListener('click', async () => {
-  const rows = Array.from(segTable.querySelectorAll('tr'));
-  const rewardSegments = rows.map(r => {
-    const inputs = r.querySelectorAll('input');
-    return {
-      label: inputs[0].value,
-      value: Number(inputs[1].value),
-      probability: Number(inputs[2].value),
-      dailyCap: Number(inputs[3].value)
-    };
-  });
-  const body = {
-    enabled: enabledEl.checked,
-    resetTime: resetEl.value,
-    spinsPerInterval: Number(spinsEl.value),
-    intervalHours: Number(intervalEl.value),
-    rewardSegments,
-    logo: logoData
-  };
-  await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-  alert('Config saved');
-});
-
-document.getElementById('save-rewards').addEventListener('click', async () => {
-  const rows = Array.from(redeemTable.querySelectorAll('tr'));
-  const rewards = rows.map(r => {
-    const inputs = r.querySelectorAll('input');
-    const existing = JSON.parse(r.dataset.codes || '[]');
-    const codes = parseCodes(inputs[2].value, existing);
-    r.dataset.codes = JSON.stringify(codes);
-    return {
-      id: Number(r.dataset.id),
-      name: inputs[0].value,
-      cost: Number(inputs[1].value),
-      codes
-    };
-  });
-  await fetch('/api/rewards', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(rewards) });
-  alert('Rewards saved');
-});
-
-loadConfig();
-loadLogs();
 loadRewards();
