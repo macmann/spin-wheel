@@ -40,6 +40,11 @@ async function loadRewards() {
   renderRewards(data);
 }
 
+async function refresh() {
+  await loadPoints();
+  await loadRewards();
+}
+
 rewardsEl.addEventListener('click', async e => {
   if (e.target.tagName === 'BUTTON') {
     const id = Number(e.target.getAttribute('data-id'));
@@ -51,8 +56,7 @@ rewardsEl.addEventListener('click', async e => {
     const data = await res.json();
     if (data.code) {
       alert('Your code: ' + data.code);
-      loadPoints();
-      loadRewards();
+      await refresh();
     } else if (data.error) {
       alert(data.error);
     }
@@ -62,6 +66,5 @@ rewardsEl.addEventListener('click', async e => {
 document.getElementById('backBtn').addEventListener('click', () => {
   window.location.href = 'index.html';
 });
+refresh();
 
-loadPoints();
-loadRewards();
