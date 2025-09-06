@@ -107,6 +107,63 @@ app.post('/api/rewards', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// Add a new reward (no codes yet)
+app.post('/api/reward', (req, res) => {
+  const { name, cost } = req.body || {};
+  if (!name || typeof cost !== 'number') {
+    return res.status(400).json({ error: 'missing name or cost' });
+  }
+  const rewards = readJSON(rewardsPath);
+  const nextId = rewards.reduce((m, r) => Math.max(m, r.id || 0), 0) + 1;
+  const reward = { id: nextId, name, cost, codes: [] };
+  rewards.push(reward);
+  writeJSON(rewardsPath, rewards);
+  res.json({ status: 'ok', reward });
+});
+
+// Fetch a single reward with available and redeemed codes separated
+app.get('/api/reward/:id', (req, res) => {
+  const rewards = readJSON(rewardsPath);
+  const reward = rewards.find(r => r.id === Number(req.params.id));
+  if (!reward) return res.status(404).json({ error: 'reward not found' });
+  const codes = reward.codes || [];
+  const available = codes.filter(c => !c.redeemed);
+  const redeemed = codes.filter(c => c.redeemed);
+  res.json({ ...reward, codes: available, redeemedCodes: redeemed });
+});
+
+// Add coupon codes to an existing reward (max 20 total)
+app.post('/api/reward/:id/codes', (req, res) => {
+  const { codes } = req.body || {};
+  if (!Array.isArray(codes) || codes.length === 0) {
+    return res.status(400).json({ error: 'no codes provided' });
+  }
+  const rewards = readJSON(rewardsPath);
+  const reward = rewards.find(r => r.id === Number(req.params.id));
+  if (!reward) return res.status(404).json({ error: 'reward not found' });
+  reward.codes = reward.codes || [];
+  if (reward.codes.length + codes.length > 20) {
+    return res.status(400).json({ error: 'max 20 codes per reward' });
+  }
+  codes.forEach(code => {
+    reward.codes.push({ code, redeemed: false });
+  });
+  writeJSON(rewardsPath, rewards);
+  res.json({ status: 'ok', totalCodes: reward.codes.length });
+});
+
+// List all redeemed codes across rewards
+app.get('/api/rewards/redeemed', (req, res) => {
+  const rewards = readJSON(rewardsPath);
+  const list = [];
+  rewards.forEach(r => {
+    (r.codes || []).forEach(c => {
+      if (c.redeemed) list.push({ rewardId: r.id, name: r.name, code: c.code });
+    });
+  });
+  res.json(list);
+});
+
 // User reward listings
 app.get('/api/rewards/:phone', (req, res) => {
   const rewards = readJSON(rewardsPath);
@@ -115,12 +172,7 @@ app.get('/api/rewards/:phone', (req, res) => {
   const user = users[phone] || { redeemed: {} };
   const redeemed = user.redeemed || {};
   const data = rewards.map(r => {
-    const available = (r.codes || []).reduce((sum, c) => {
-      if (typeof c === 'string') return sum + 1;
-      const amt = Number(c.amount) || 0;
-      const red = Number(c.redeemed) || 0;
-      return sum + Math.max(0, amt - red);
-    }, 0);
+    const available = (r.codes || []).filter(c => !c.redeemed).length;
     return {
       id: r.id,
       name: r.name,
@@ -143,17 +195,10 @@ app.post('/api/redeem', (req, res) => {
   const reward = rewards.find(r => r.id === rewardId);
   if (!reward) return res.status(400).json({ error: 'reward not found' });
   if (user.points < reward.cost) return res.status(400).json({ error: 'not enough points' });
-  if (!Array.isArray(reward.codes) || reward.codes.length === 0)
-    return res.status(400).json({ error: 'no codes left' });
-  let codeEntry;
-  if (typeof reward.codes[0] === 'string') {
-    codeEntry = { code: reward.codes.shift() };
-  } else {
-    codeEntry = reward.codes.find(c => (Number(c.amount) || 0) > (Number(c.redeemed) || 0));
-    if (!codeEntry) return res.status(400).json({ error: 'no codes left' });
-    codeEntry.redeemed = (Number(codeEntry.redeemed) || 0) + 1;
-  }
-  const code = codeEntry.code;
+  const entry = (reward.codes || []).find(c => !c.redeemed);
+  if (!entry) return res.status(400).json({ error: 'no codes left' });
+  entry.redeemed = true;
+  const code = entry.code;
   user.points -= reward.cost;
   user.redeemed[rewardId] = code;
   writeJSON(usersPath, users);

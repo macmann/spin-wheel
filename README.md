@@ -39,6 +39,24 @@ Static pages for a 10‑segment spin wheel and admin panel live in `public/`.
 - These IDs are exposed to the browser via `/env.js` and used by `app.js`.
 - You can still open `admin.html` to override them and store custom values in `localStorage`.
 
+### Reward Management API
+
+The server exposes endpoints for managing coupon code rewards:
+
+| Method & Path | Description |
+| --- | --- |
+| `POST /api/reward` | Create a new reward with a name and cost. |
+| `POST /api/reward/:id/codes` | Add up to 20 coupon codes to the reward. |
+| `GET /api/reward/:id` | Fetch reward details including available and redeemed codes. |
+| `GET /api/rewards/redeemed` | List all redeemed codes across rewards. |
+| `POST /api/redeem` | Users redeem a reward; the server marks the code as redeemed. |
+
+Redeemed codes are removed from the available pool but remain visible in the redeemed list.
+
+### Admin Panel
+
+Open `admin.html` to create rewards, attach up to twenty coupon codes, and review redeemed codes.
+
 ## Files
 ```
 codex-project/
