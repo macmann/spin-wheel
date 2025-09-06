@@ -178,7 +178,8 @@ app.post('/api/redeem', (req, res) => {
   const codes = readJSON(codesPath);
   const user = users[phone];
   if (!user) return res.status(400).json({ error: 'user not found' });
-  user.redeemed = user.redeemed || [];
+  // Ensure redeemed is an array before using push to avoid runtime errors
+  user.redeemed = Array.isArray(user.redeemed) ? user.redeemed : [];
   const reward = rewards.find(r => r.id === rewardId);
   if (!reward) return res.status(400).json({ error: 'reward not found' });
   const cost = reward.cost || 0;
