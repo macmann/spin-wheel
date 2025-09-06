@@ -9,6 +9,7 @@ const logoPreview = document.getElementById('logoPreview');
 let logoData = '';
 const rewardList = document.getElementById('rewardList');
 const newRewardName = document.getElementById('newRewardName');
+const newRewardCost = document.getElementById('newRewardCost');
 const createRewardBtn = document.getElementById('createReward');
 const couponSection = document.getElementById('coupon-section');
 const couponTitle = document.getElementById('couponTitle');
@@ -106,7 +107,7 @@ async function loadRewards() {
   rewardList.innerHTML = '';
   rewards.forEach(r => {
     const li = document.createElement('li');
-    li.textContent = r.name + ' ';
+    li.textContent = `${r.name} (${r.cost || 0} pts) `;
     const btn = document.createElement('button');
     btn.textContent = 'Manage Coupons';
     btn.addEventListener('click', () => openCoupons(r.id, r.name));
@@ -117,13 +118,15 @@ async function loadRewards() {
 
 async function createReward() {
   const name = newRewardName.value.trim();
+  const cost = Number(newRewardCost.value || 0);
   if (!name) return;
   await fetch('/api/rewards', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name })
+    body: JSON.stringify({ name, cost })
   });
   newRewardName.value = '';
+  newRewardCost.value = '';
   loadRewards();
 }
 

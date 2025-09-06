@@ -12,11 +12,13 @@ const user = getUser();
 const phone = user.phone;
 const pointsEl = document.getElementById('userPoints');
 const rewardsEl = document.getElementById('rewards');
+let userPoints = 0;
 
 async function loadPoints() {
   const res = await fetch(`/api/users/${phone}`);
   const data = await res.json();
-  pointsEl.textContent = 'Points: ' + data.points;
+  userPoints = data.points;
+  pointsEl.textContent = 'Points: ' + userPoints;
 }
 
 function renderRewards(rewards) {
@@ -24,11 +26,11 @@ function renderRewards(rewards) {
   rewards.forEach(r => {
     const div = document.createElement('div');
     div.className = 'reward';
-    let html = `<strong>${r.name}</strong>`;
+    let html = `<strong>${r.name}</strong> - ${r.cost} pts`;
     if (r.redeemedCode) {
       html += `<p>Your code: ${r.redeemedCode}</p>`;
     } else {
-      const disabled = r.available === 0 ? 'disabled' : '';
+      const disabled = r.available === 0 || userPoints < r.cost ? 'disabled' : '';
       html += `<p>Available: ${r.available}</p><button data-id="${r.id}" ${disabled}>Redeem</button>`;
     }
     div.innerHTML = html;
