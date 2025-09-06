@@ -197,6 +197,51 @@ h3 { margin:24px 0 12px; font-size:1rem; color:var(--color-sub); font-weight:700
         </table>
       </section>
     </div>
+    <div class="card" id="rewardCard">
+      <h2>Rewards</h2>
+      <div class="setting-row">
+        <input type="text" id="rewardName" placeholder="Reward name">
+        <input type="number" id="rewardCost" min="0" placeholder="Cost">
+        <button type="button" class="btn btn-success" id="createReward">Add Reward</button>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>NAME</th>
+            <th>COST</th>
+            <th>AVAILABLE</th>
+            <th>MANAGE</th>
+          </tr>
+        </thead>
+        <tbody id="rewardRows"></tbody>
+      </table>
+    </div>
+    <div class="card" id="redeemedCard">
+      <h2>Redeemed Codes</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>REWARD</th>
+            <th>CODE</th>
+          </tr>
+        </thead>
+        <tbody id="redeemedBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="card" id="codeManager" style="display:none; margin:20px auto; max-width:600px;">
+  <h2 id="codeManagerTitle"></h2>
+  <h3>Available Codes</h3>
+  <ul id="availableCodeList"></ul>
+  <div class="setting-row">
+    <input type="text" id="newCodeInput" placeholder="New code">
+    <button type="button" class="btn btn-primary" id="addCodeBtn">+</button>
+  </div>
+  <h3>Redeemed Codes</h3>
+  <ul id="redeemedCodeList"></ul>
+  <div class="actions">
+    <button type="button" class="btn" id="closeCodeManager">Close</button>
   </div>
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite" tabindex="-1"></div>
@@ -332,6 +377,114 @@ bindEvents();
 renderRewardsTable();
 updateToggleLabel();
 loadAdsenseSettings();
+
+// --- Reward management (coupon codes) ---
+let storeRewards = [];
+let currentRewardId = null;
+
+async function loadRewards() {
+  try {
+    const res = await fetch('/api/rewards');
+    storeRewards = await res.json();
+    renderRewardRows();
+  } catch (e) {
+    console.error('Failed to load rewards', e);
+  }
+}
+
+function renderRewardRows() {
+  const tbody = document.getElementById('rewardRows');
+  tbody.innerHTML = '';
+  storeRewards.forEach(r => {
+    const available = (r.codes || []).filter(c => !c.redeemed).length;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.name}</td>
+      <td>${r.cost}</td>
+      <td>${available}/20</td>
+      <td><button type="button" class="btn btn-primary manage" data-id="${r.id}">+</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  document.querySelectorAll('#rewardRows .manage').forEach(btn => {
+    btn.addEventListener('click', () => openCodeManager(btn.dataset.id));
+  });
+}
+
+async function createReward() {
+  const name = document.getElementById('rewardName').value.trim();
+  const cost = parseInt(document.getElementById('rewardCost').value, 10);
+  if (!name || isNaN(cost)) return;
+  await fetch('/api/reward', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, cost })
+  });
+  document.getElementById('rewardName').value = '';
+  document.getElementById('rewardCost').value = '';
+  loadRewards();
+}
+
+async function openCodeManager(id) {
+  const res = await fetch(`/api/reward/${id}`);
+  const reward = await res.json();
+  currentRewardId = id;
+  document.getElementById('codeManagerTitle').textContent = reward.name;
+  const avail = document.getElementById('availableCodeList');
+  avail.innerHTML = '';
+  reward.codes.forEach(c => {
+    const li = document.createElement('li');
+    li.textContent = c.code;
+    avail.appendChild(li);
+  });
+  const redeemed = document.getElementById('redeemedCodeList');
+  redeemed.innerHTML = '';
+  reward.redeemedCodes.forEach(c => {
+    const li = document.createElement('li');
+    li.textContent = c.code;
+    redeemed.appendChild(li);
+  });
+  document.getElementById('codeManager').style.display = 'block';
+  document.getElementById('newCodeInput').value = '';
+  document.getElementById('addCodeBtn').disabled = reward.codes.length + reward.redeemedCodes.length >= 20;
+}
+
+async function addCode() {
+  const code = document.getElementById('newCodeInput').value.trim();
+  if (!code || !currentRewardId) return;
+  await fetch(`/api/reward/${currentRewardId}/codes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ codes: [code] })
+  });
+  openCodeManager(currentRewardId);
+  loadRewards();
+  loadRedeemed();
+}
+
+function closeCodeManager() {
+  document.getElementById('codeManager').style.display = 'none';
+  currentRewardId = null;
+}
+
+async function loadRedeemed() {
+  const res = await fetch('/api/rewards/redeemed');
+  const list = await res.json();
+  const tbody = document.getElementById('redeemedBody');
+  tbody.innerHTML = '';
+  list.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.name}</td><td>${r.code}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById('createReward').addEventListener('click', createReward);
+document.getElementById('addCodeBtn').addEventListener('click', addCode);
+document.getElementById('closeCodeManager').addEventListener('click', closeCodeManager);
+
+loadRewards();
+loadRedeemed();
 </script>
 </body>
 </html>
