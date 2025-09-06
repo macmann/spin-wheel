@@ -13,6 +13,7 @@ const configPath = path.join(dataDir, 'config.json');
 const logsPath = path.join(dataDir, 'logs.json');
 const usersPath = path.join(dataDir, 'users.json');
 const rewardsPath = path.join(dataDir, 'rewards.json');
+const codesPath = path.join(dataDir, 'codes.json');
 
 function readJSON(p) {
   return JSON.parse(fs.readFileSync(p, 'utf-8'));
@@ -98,34 +99,75 @@ app.post('/api/canspin', (req, res) => {
   });
 });
 
-// Redemption rewards configuration (admin)
+// Redemption rewards configuration and codes
 app.get('/api/rewards', (req, res) => {
   res.json(readJSON(rewardsPath));
 });
 app.post('/api/rewards', (req, res) => {
-  writeJSON(rewardsPath, req.body);
-  res.json({ status: 'ok' });
+  const { name } = req.body;
+  if (!name) return res.status(400).json({ error: 'name required' });
+  const rewards = readJSON(rewardsPath);
+  const id = rewards.reduce((max, r) => Math.max(max, r.id || 0), 0) + 1;
+  const reward = { id, name };
+  rewards.push(reward);
+  writeJSON(rewardsPath, rewards);
+  res.json(reward);
+});
+
+app.get('/api/rewards/:id/codes', (req, res) => {
+  const rewardId = Number(req.params.id);
+  const codes = readJSON(codesPath).filter(c => c.rewardId === rewardId);
+  res.json(codes);
+});
+
+app.post('/api/rewards/:id/codes', (req, res) => {
+  const rewardId = Number(req.params.id);
+  const { category, codes } = req.body;
+  if (!category || !Array.isArray(codes)) {
+    return res.status(400).json({ error: 'invalid payload' });
+  }
+  const allCodes = readJSON(codesPath);
+  let nextId = allCodes.reduce((m, c) => Math.max(m, c.id || 0), 0) + 1;
+  const newEntries = codes
+    .filter(code => code && code.trim())
+    .map(code => ({
+      id: nextId++,
+      rewardId,
+      category,
+      code: code.trim(),
+      used: false,
+      createdAt: new Date().toISOString()
+    }));
+  allCodes.push(...newEntries);
+  writeJSON(codesPath, allCodes);
+  res.json({ status: 'ok', added: newEntries.length });
+});
+
+app.delete('/api/codes/:id', (req, res) => {
+  const codeId = Number(req.params.id);
+  const codes = readJSON(codesPath);
+  const idx = codes.findIndex(c => c.id === codeId);
+  if (idx === -1) return res.status(404).json({ error: 'not found' });
+  if (codes[idx].used) return res.status(400).json({ error: 'code used' });
+  codes.splice(idx, 1);
+  writeJSON(codesPath, codes);
+  res.json({ status: 'deleted' });
 });
 
 // User reward listings
 app.get('/api/rewards/:phone', (req, res) => {
   const rewards = readJSON(rewardsPath);
+  const codes = readJSON(codesPath);
   const users = readJSON(usersPath);
   const phone = req.params.phone;
   const user = users[phone] || { redeemed: {} };
-  const redeemed = user.redeemed || {};
   const data = rewards.map(r => {
-    const available = (r.codes || []).reduce((sum, c) => {
-      if (typeof c === 'string') return sum + 1;
-      const amt = Number(c.amount) || 0;
-      const red = Number(c.redeemed) || 0;
-      return sum + Math.max(0, amt - red);
-    }, 0);
+    const available = codes.filter(c => c.rewardId === r.id && !c.used).length;
+    const redeemedCode = codes.find(c => c.rewardId === r.id && c.usedBy === phone)?.code || null;
     return {
       id: r.id,
       name: r.name,
-      cost: r.cost,
-      redeemedCode: redeemed[r.id] || null,
+      redeemedCode,
       available
     };
   });
@@ -136,29 +178,22 @@ app.post('/api/redeem', (req, res) => {
   const { phone, rewardId } = req.body;
   const rewards = readJSON(rewardsPath);
   const users = readJSON(usersPath);
+  const codes = readJSON(codesPath);
   const user = users[phone];
   if (!user) return res.status(400).json({ error: 'user not found' });
   user.redeemed = user.redeemed || {};
   if (user.redeemed[rewardId]) return res.status(400).json({ error: 'already redeemed' });
   const reward = rewards.find(r => r.id === rewardId);
   if (!reward) return res.status(400).json({ error: 'reward not found' });
-  if (user.points < reward.cost) return res.status(400).json({ error: 'not enough points' });
-  if (!Array.isArray(reward.codes) || reward.codes.length === 0)
-    return res.status(400).json({ error: 'no codes left' });
-  let codeEntry;
-  if (typeof reward.codes[0] === 'string') {
-    codeEntry = { code: reward.codes.shift() };
-  } else {
-    codeEntry = reward.codes.find(c => (Number(c.amount) || 0) > (Number(c.redeemed) || 0));
-    if (!codeEntry) return res.status(400).json({ error: 'no codes left' });
-    codeEntry.redeemed = (Number(codeEntry.redeemed) || 0) + 1;
-  }
-  const code = codeEntry.code;
-  user.points -= reward.cost;
-  user.redeemed[rewardId] = code;
+  const codeEntry = codes.find(c => c.rewardId === rewardId && !c.used);
+  if (!codeEntry) return res.status(400).json({ error: 'no codes left' });
+  codeEntry.used = true;
+  codeEntry.usedBy = phone;
+  codeEntry.usedAt = new Date().toISOString();
+  user.redeemed[rewardId] = codeEntry.code;
   writeJSON(usersPath, users);
-  writeJSON(rewardsPath, rewards);
-  res.json({ status: 'ok', code, points: user.points });
+  writeJSON(codesPath, codes);
+  res.json({ status: 'ok', code: codeEntry.code });
 });
 
 // Logs endpoints
