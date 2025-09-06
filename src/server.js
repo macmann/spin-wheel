@@ -160,19 +160,21 @@ app.get('/api/rewards/:phone', (req, res) => {
   const codes = readJSON(codesPath);
   const phone = req.params.phone;
   const data = rewards.map(r => {
-    const available = codes.filter(c => c.rewardId === r.id && !c.used).length;
+    const rewardCodes = codes.filter(c => c.rewardId === r.id && !c.used);
+    const categories = [...new Set(rewardCodes.map(c => c.category))];
     return {
       id: r.id,
       name: r.name,
       cost: r.cost || 0,
-      available
+      available: rewardCodes.length,
+      categories
     };
   });
   res.json(data);
 });
 
 app.post('/api/redeem', (req, res) => {
-  const { phone, rewardId } = req.body;
+  const { phone, rewardId, category } = req.body;
   const rewards = readJSON(rewardsPath);
   const users = readJSON(usersPath);
   const codes = readJSON(codesPath);
@@ -186,12 +188,12 @@ app.post('/api/redeem', (req, res) => {
   if ((user.points || 0) < cost) {
     return res.status(400).json({ error: 'Not enough points. Come back later when you have points.' });
   }
-  const codeEntry = codes.find(c => c.rewardId === rewardId && !c.used);
+  const codeEntry = codes.find(c => c.rewardId === rewardId && c.category === category && !c.used);
   if (!codeEntry) return res.status(400).json({ error: 'no codes left' });
   codeEntry.used = true;
   codeEntry.usedBy = phone;
   codeEntry.usedAt = new Date().toISOString();
-  user.redeemed.push({ rewardId, code: codeEntry.code, redeemedAt: codeEntry.usedAt });
+  user.redeemed.push({ rewardId, category, code: codeEntry.code, redeemedAt: codeEntry.usedAt });
   user.points = (user.points || 0) - cost;
   writeJSON(usersPath, users);
   writeJSON(codesPath, codes);
