@@ -27,12 +27,8 @@ function renderRewards(rewards) {
     const div = document.createElement('div');
     div.className = 'reward';
     let html = `<strong>${r.name}</strong> - ${r.cost} pts`;
-    if (r.redeemedCode) {
-      html += `<p>Your code: ${r.redeemedCode}</p>`;
-    } else {
-      const disabled = r.available === 0 || userPoints < r.cost ? 'disabled' : '';
-      html += `<p>Available: ${r.available}</p><button data-id="${r.id}" ${disabled}>Redeem</button>`;
-    }
+    const disabled = r.available === 0 || userPoints < r.cost ? 'disabled' : '';
+    html += `<p>Available: ${r.available}</p><button data-id="${r.id}" ${disabled}>Redeem</button>`;
     div.innerHTML = html;
     rewardsEl.appendChild(div);
   });
