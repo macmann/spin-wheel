@@ -32,16 +32,36 @@
     <button id="save-config">Save Config</button>
 
     <h2>Redemption Rewards</h2>
-    <div class="table-wrapper">
-      <table id="redeem-table">
-        <thead>
-          <tr><th>Name</th><th>Cost</th><th>Codes (code:amount, comma separated)</th><th>Available</th><th>Action</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+    <div id="reward-section">
+      <input type="text" id="newRewardName" placeholder="Reward name" />
+      <button id="createReward">Add Reward</button>
+      <ul id="rewardList"></ul>
     </div>
-    <button id="add-reward">Add Reward</button>
-    <button id="save-rewards">Save Rewards</button>
+
+    <div id="coupon-section" style="display:none;">
+      <h3 id="couponTitle"></h3>
+      <label>Category:
+        <select id="couponCategory">
+          <option value="ATOM">ATOM</option>
+          <option value="Ooredoo">Ooredoo</option>
+          <option value="MPT">MPT</option>
+          <option value="MyTel">MyTel</option>
+        </select>
+      </label>
+      <div id="codeInputs">
+        <input type="text" class="code-input" placeholder="Coupon code" />
+      </div>
+      <button id="addCodeInput">Add More</button>
+      <button id="saveCodes">Save Codes</button>
+      <div class="table-wrapper">
+        <table id="codesTable">
+          <thead>
+            <tr><th>Code</th><th>Category</th><th>Used</th><th>UsedBy</th><th>UsedAt</th><th>Action</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
 
     <h2>Activity Logs</h2>
     <div class="table-wrapper">

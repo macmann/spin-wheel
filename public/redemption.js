@@ -24,7 +24,7 @@ function renderRewards(rewards) {
   rewards.forEach(r => {
     const div = document.createElement('div');
     div.className = 'reward';
-    let html = `<strong>${r.name}</strong><br/>Cost: ${r.cost} points`;
+    let html = `<strong>${r.name}</strong>`;
     if (r.redeemedCode) {
       html += `<p>Your code: ${r.redeemedCode}</p>`;
     } else {
