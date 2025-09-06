@@ -64,7 +64,7 @@ app.post('/api/register', (req, res) => {
     return res.status(400).json({ error: 'user exists' });
   }
   const hash = crypto.createHash('sha256').update(password).digest('hex');
-  users[phone] = { name, password: hash, points: 0, redeemed: {} };
+  users[phone] = { name, password: hash, points: 0, redeemed: [] };
   writeJSON(usersPath, users);
   res.json({ status: 'registered' });
 });
@@ -158,17 +158,13 @@ app.delete('/api/codes/:id', (req, res) => {
 app.get('/api/rewards/:phone', (req, res) => {
   const rewards = readJSON(rewardsPath);
   const codes = readJSON(codesPath);
-  const users = readJSON(usersPath);
   const phone = req.params.phone;
-  const user = users[phone] || { redeemed: {} };
   const data = rewards.map(r => {
     const available = codes.filter(c => c.rewardId === r.id && !c.used).length;
-    const redeemedCode = codes.find(c => c.rewardId === r.id && c.usedBy === phone)?.code || null;
     return {
       id: r.id,
       name: r.name,
       cost: r.cost || 0,
-      redeemedCode,
       available
     };
   });
@@ -182,8 +178,7 @@ app.post('/api/redeem', (req, res) => {
   const codes = readJSON(codesPath);
   const user = users[phone];
   if (!user) return res.status(400).json({ error: 'user not found' });
-  user.redeemed = user.redeemed || {};
-  if (user.redeemed[rewardId]) return res.status(400).json({ error: 'already redeemed' });
+  user.redeemed = user.redeemed || [];
   const reward = rewards.find(r => r.id === rewardId);
   if (!reward) return res.status(400).json({ error: 'reward not found' });
   const cost = reward.cost || 0;
@@ -195,7 +190,7 @@ app.post('/api/redeem', (req, res) => {
   codeEntry.used = true;
   codeEntry.usedBy = phone;
   codeEntry.usedAt = new Date().toISOString();
-  user.redeemed[rewardId] = codeEntry.code;
+  user.redeemed.push({ rewardId, code: codeEntry.code, redeemedAt: codeEntry.usedAt });
   user.points = (user.points || 0) - cost;
   writeJSON(usersPath, users);
   writeJSON(codesPath, codes);
@@ -234,6 +229,25 @@ app.get('/api/users/:phone', (req, res) => {
   const phone = req.params.phone;
   const user = users[phone];
   res.json({ phone, name: user?.name || null, points: user?.points || 0 });
+});
+
+// User redemption history
+app.get('/api/users/:phone/redemptions', (req, res) => {
+  const phone = req.params.phone;
+  const users = readJSON(usersPath);
+  const rewards = readJSON(rewardsPath);
+  const user = users[phone];
+  if (!user) return res.json([]);
+  const history = (user.redeemed || []).map(r => {
+    const reward = rewards.find(rew => rew.id === r.rewardId);
+    return {
+      rewardId: r.rewardId,
+      rewardName: reward ? reward.name : '',
+      code: r.code,
+      timestamp: r.redeemedAt
+    };
+  });
+  res.json(history);
 });
 
 // User reward history

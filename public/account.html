@@ -70,7 +70,7 @@
     <h1>My Account</h1>
     <p id="user-name"></p>
     <p id="user-points"></p>
-    <h2>Reward History</h2>
+    <h2>Redemption History</h2>
     <ul id="history"></ul>
     <button id="backBtn">Back</button>
     <button id="logoutBtn">Logout</button>
@@ -88,18 +88,18 @@
         const userRes = await fetch(`/api/users/${phone}`);
         const userData = await userRes.json();
         document.getElementById('user-points').textContent = 'Total Points: ' + userData.points;
-        const res = await fetch(`/api/users/${phone}/logs`);
-        const logs = await res.json();
+        const res = await fetch(`/api/users/${phone}/redemptions`);
+        const redemptions = await res.json();
         const history = document.getElementById('history');
-        if (logs.length === 0) {
+        if (redemptions.length === 0) {
           const li = document.createElement('li');
-          li.textContent = 'No rewards yet';
+          li.textContent = 'No redemptions yet';
           history.appendChild(li);
         } else {
-          logs.forEach(l => {
+          redemptions.forEach(r => {
             const li = document.createElement('li');
-            const date = new Date(l.timestamp).toLocaleString();
-            li.textContent = `${date} - ${l.rewardType}`;
+            const date = new Date(r.timestamp).toLocaleString();
+            li.textContent = `${date} - ${r.rewardName}: ${r.code}`;
             history.appendChild(li);
           });
         }
