@@ -28,8 +28,13 @@ function renderRewards(rewards) {
     div.className = 'reward';
     let html = `<strong>${r.name}</strong> - ${r.cost} pts`;
     const disabled = r.available === 0 || userPoints < r.cost ? 'disabled' : '';
-    const cats = JSON.stringify(r.categories || []);
-    html += `<p>Available: ${r.available}</p><button data-id="${r.id}" data-categories='${cats}' ${disabled}>Redeem</button>`;
+    html += `<p>Available: ${r.available}</p>`;
+    if (r.categories && r.categories.length) {
+      html += '<label>Category: <select class="category-select">';
+      html += r.categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+      html += '</select></label>';
+    }
+    html += `<button data-id="${r.id}" ${disabled}>Redeem</button>`;
     div.innerHTML = html;
     rewardsEl.appendChild(div);
   });
@@ -49,8 +54,9 @@ async function refresh() {
 rewardsEl.addEventListener('click', async e => {
   if (e.target.tagName === 'BUTTON') {
     const id = Number(e.target.getAttribute('data-id'));
-    const categories = JSON.parse(e.target.getAttribute('data-categories') || '[]');
-    const category = prompt('Choose category: ' + categories.join(', '));
+    const container = e.target.closest('.reward');
+    const select = container.querySelector('.category-select');
+    const category = select ? select.value : '';
     const res = await fetch('/api/redeem', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
