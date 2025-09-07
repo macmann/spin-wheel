@@ -4,19 +4,31 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Redeem Rewards</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="../styles.css" />
   <style>
-    .reward { background:#fff; color:#000; padding:12px; margin:12px 0; border-radius:8px; }
-    .reward button { margin-top:8px; }
+    .reward {
+      background: #fff;
+      color: #333;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      text-align: left;
+    }
+    .reward button {
+      margin-top: 0.5rem;
+    }
   </style>
 </head>
-<body class="admin-page">
-  <div class="admin-container">
+<body>
+  <main class="container">
     <h1>Redeem Rewards</h1>
-    <p id="userPoints"></p>
-    <div id="rewards"></div>
-    <button id="backBtn">Back</button>
-  </div>
+    <div class="card">
+      <p id="userPoints"></p>
+      <div id="rewards"></div>
+      <button id="backBtn" class="btn">Back</button>
+    </div>
+  </main>
   <script src="redemption.js"></script>
 </body>
 </html>
