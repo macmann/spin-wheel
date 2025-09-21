@@ -1,617 +1,382 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lucky Wheel</title>
-<style>
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #0d0d2b;
-  font-family: system-ui, sans-serif;
-  color: #fff;
-}
-
-.scene {
-  width: 90%;
-  max-width: 420px;
-  perspective: 1000px;
-}
-
-#card {
-  width: 100%;
-  height: clamp(520px, 80vh, 560px);
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.8s;
-}
-
-#card.flipped {
-  transform: rotateY(180deg);
-}
-
-.face {
-  background: #1b1b3a;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  text-align: center;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  backface-visibility: hidden;
-}
-
-.face.back {
-  transform: rotateY(180deg);
-}
-
-h1 {
-  margin: 0;
-  font-size: clamp(1.5rem, 6vw, 2rem);
-  font-weight: 700;
-  background: linear-gradient(45deg,#ff7a00,#ffe600);
-  -webkit-background-clip: text;
-  color: transparent;
-  letter-spacing: 1px;
-}
-
-.subtitle {
-  margin-top: 8px;
-  color: #ccc;
-}
-
-#user-id {
-  margin-top: 4px;
-  font-size: 0.9rem;
-  color: #aaa;
-}
-
-/* wheel */
-#wheel-wrapper {
-  position: relative;
-  margin: 24px auto;
-  width: min(80vw, 300px);
-  height: min(80vw, 300px);
-}
-
-#wheel {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  border: 8px solid #fff;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-  position: relative;
-  z-index: 1;
-}
-
-.pointer {
-  position: absolute;
-  top: -18px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 15px solid transparent;
-  border-right: 15px solid transparent;
-  border-bottom: 25px solid #e74c3c;
-  z-index: 3;
-}
-
-.hub {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: clamp(50px, 15vw, 70px);
-  height: clamp(50px, 15vw, 70px);
-  background: #fff;
-  color: #000;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(0.7rem, 2vw, 0.8rem);
-  z-index: 2;
-  box-shadow: 0 0 6px rgba(0,0,0,0.6) inset;
-}
-
-.hub img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.axle {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: calc(100% + 40px);
-  height: 12px;
-  background: #888;
-  transform: translate(-50%, -50%);
-  border-radius: 6px;
-  z-index: 0;
-}
-
-/* buttons */
-button {
-  border: none;
-  border-radius: 9999px;
-  padding: 12px 24px;
-  font-size: 1rem;
-  color: #fff;
-  cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-  transition: background 0.2s;
-}
-
-button:focus {
-  outline: 2px solid #fff;
-  outline-offset: 2px;
-}
-
-#spin {
-  background: #e74c3c;
-}
-
-#spin:hover:not(:disabled) {
-  background: #c0392b;
-}
-
-#spin:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-#result {
-  margin-top: 16px;
-}
-
-#next-spin-timer {
-  margin-top: 8px;
-}
-
-#leaderboardBtn {
-  margin-top: 16px;
-  background: #2ecc71;
-}
-
-#leaderboardBtn:hover {
-  background: #27ae60;
-}
-
-#adminBtn {
-  margin-top: 10px;
-  background: #2980b9;
-}
-
-#adminBtn:hover {
-  background: #3498db;
-}
-
-#accountBtn {
-  margin-top: 10px;
-  background: orange;
-}
-
-#accountBtn:hover {
-  background: darkorange;
-}
-
-#redeemBtn {
-  margin-top: 10px;
-  background: violet;
-}
-
-#redeemBtn:hover {
-  background: darkviolet;
-}
-
-#logoutBtn {
-  margin-top: 10px;
-  background: brown;
-}
-
-#logoutBtn:hover {
-  background: #8b4513;
-}
-
-/* leaderboard table */
-#board {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 16px;
-}
-
-#board th, #board td {
-  border-bottom: 1px solid #333;
-  padding: 8px;
-}
-
-#board th {
-  text-align: left;
-}
-
-#backBtn {
-  margin-top: 16px;
-  background: #e74c3c;
-}
-
-#backBtn:hover {
-  background: #c0392b;
-}
-#card.flipped .front {
-  pointer-events: none;
-}
-  #card:not(.flipped) .back {
-    pointer-events: none;
-  }
-
-  /* win popup */
-  #win-popup {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.8);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-
-  #win-popup.show {
-    display: flex;
-  }
-
-  #fireworks-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-  }
-
-  .popup-content {
-    position: relative;
-    background: #1b1b3a;
-    padding: 24px 40px;
-    border-radius: 16px;
-    text-align: center;
-    z-index: 1;
-  }
-
-  #popup-close {
-    position: absolute;
-    top: 8px;
-    right: 12px;
-    font-size: 24px;
-    cursor: pointer;
-    color: #fff;
-  }
-
-@media (max-width: 480px) {
-  .face {
-    padding: 16px;
-  }
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Spin Rewards Hub helps publishers create engaging prize wheel experiences while complying with Google AdSense policies and delivering valuable content to players." />
+  <title>Spin Rewards Hub – Policy-Compliant Prize Wheel Experiences</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="/env.js" defer></script>
+  <script src="app.js" defer></script>
 </head>
 <body>
-<div class="scene">
-  <div id="card">
-    <div class="face front">
-      <h1>LUCKY WHEEL</h1>
-      <p class="subtitle">Spin the wheel to win a prize!</p>
-      <p id="user-id">User:</p>
-      <p id="user-points">Total Points: 0</p>
+  <div id="consent-banner" class="consent-banner" role="dialog" aria-label="Cookie consent notification">
+    <p>
+      We use cookies to personalise content, measure engagement, and keep ads relevant. By clicking
+      “Accept” you agree to the <a href="privacy.html">Privacy Notice</a> and <a href="terms.html">Terms of Service</a>.
+    </p>
+    <button id="accept-consent" class="btn btn-primary">Accept</button>
+  </div>
 
-      <div id="wheel-wrapper">
-        <div class="axle"></div>
-        <canvas id="wheel" width="300" height="300"></canvas>
-        <div class="pointer"></div>
-        <div class="hub"><img id="hub-logo" alt="Logo" /></div>
+  <header class="site-header" id="top">
+    <div class="container header-content">
+      <a class="logo" href="#top" aria-label="Spin Rewards Hub home">Spin Rewards Hub</a>
+      <nav aria-label="Primary navigation">
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+        <ul id="primary-nav" class="nav-list">
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="#monetization">Monetisation</a></li>
+          <li><a href="#resources">Resources</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#contact">Contact</a></li>
+          <li><a class="nav-cta" href="experience.html">Player experience</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <h1 id="hero-title">Build rewarding experiences that respect your audience and AdSense rules</h1>
+          <p>
+            Spin Rewards Hub is a knowledge centre for loyalty marketers, casual-game publishers, and independent
+            creators who want to add a prize wheel mechanic without violating Google’s monetisation policies.
+            Explore tested configuration templates, review real-world case studies, and learn how to implement
+            meaningful content around every spin.
+          </p>
+          <div class="button-group" role="group" aria-label="Player experience shortcuts">
+            <a class="btn btn-primary" href="experience.html">Launch player experience</a>
+            <a class="btn btn-secondary" href="login.html">Player login</a>
+          </div>
+          <div class="stat-grid" role="list">
+            <div class="stat" role="listitem">
+              <span class="stat__number">120K+</span>
+              <span class="stat__label">Monthly players across participating sites</span>
+            </div>
+            <div class="stat" role="listitem">
+              <span class="stat__number">98%</span>
+              <span class="stat__label">Policy compliance rate verified by quarterly audits</span>
+            </div>
+            <div class="stat" role="listitem">
+              <span class="stat__number">35%</span>
+              <span class="stat__label">Average uplift in repeat visits after adding editorial guides</span>
+            </div>
+            <div class="stat" role="listitem">
+              <span class="stat__number">24/7</span>
+              <span class="stat__label">Support coverage for programme launches</span>
+            </div>
+          </div>
+        </div>
+        <aside class="hero-panel" aria-label="Publisher success highlights">
+          <h2>What makes a compliant spin experience?</h2>
+          <ul>
+            <li>Rich editorial context explaining the promotion and its benefits.</li>
+            <li>Clear eligibility rules with transparent odds.</li>
+            <li>Consent-first ad serving and accurate labelling for rewarded experiences.</li>
+            <li>Accessibility features so every player can participate.</li>
+          </ul>
+          <a class="btn btn-secondary" href="#resources">Browse the implementation guides</a>
+        </aside>
       </div>
+    </section>
 
-      <button id="spin">Spin</button>
-      <div id="next-spin-timer"></div>
-      <div id="result" aria-live="polite">Spin to win points!</div>
-      <button id="leaderboardBtn">Show Leaderboard</button>
-      <button id="accountBtn">My Account</button>
-      <button id="redeemBtn">Redeem Rewards</button>
-      <button id="adminBtn">Admin Panel</button>
-      <button id="logoutBtn">Logout</button>
+    <section id="overview" class="section" aria-labelledby="overview-title">
+      <div class="container split">
+        <article>
+          <h2 id="overview-title">Programme overview</h2>
+          <p>
+            The Spin Rewards programme combines editorial storytelling, skill-building challenges, and a daily spin wheel.
+            Publishers embed detailed copy blocks, player tips, and responsible-play reminders adjacent to the
+            interactive element so that every session delivers value even before the prize is revealed. The wheel is
+            powered by configurable probability tables, giving marketing teams full control over reward pacing.
+          </p>
+          <p>
+            Beyond the game mechanics, we emphasise user trust. Activity logs, fraud heuristics, and cooling periods keep
+            high-value rewards sustainable. Editorial teams can publish daily learning prompts, interview industry experts,
+            and highlight community achievements to create a sense of progression. Every page published through Spin
+            Rewards includes schema markup and descriptive headings so that search engines can understand the content.
+          </p>
+        </article>
+        <aside class="callout" aria-label="Quick facts">
+          <h3>Quick facts</h3>
+          <dl>
+            <div>
+              <dt>Ideal for</dt>
+              <dd>Education portals, fintech loyalty apps, and lifestyle publications</dd>
+            </div>
+            <div>
+              <dt>Minimum content per page</dt>
+              <dd>600 words of unique editorial commentary supplemented with multimedia</dd>
+            </div>
+            <div>
+              <dt>Reward policy</dt>
+              <dd>Cap high-value prizes and require double opt-in for physical fulfilment</dd>
+            </div>
+            <div>
+              <dt>Data safeguards</dt>
+              <dd>PII encrypted at rest, regular GDPR/CCPA readiness reviews</dd>
+            </div>
+          </dl>
+        </aside>
+      </div>
+    </section>
+
+    <section id="how-it-works" class="section section--alt" aria-labelledby="how-title">
+      <div class="container">
+        <h2 id="how-title">How the daily spin experience works</h2>
+        <ol class="steps">
+          <li>
+            <h3>1. Editorial briefing</h3>
+            <p>
+              Every spin page begins with a short-form article. Editors explain the day’s theme, such as “budgeting for
+              travel” or “healthy productivity habits”, and link to longer learning modules. This ensures players gain
+              practical advice before interacting with any ad inventory.
+            </p>
+          </li>
+          <li>
+            <h3>2. Consent-first activation</h3>
+            <p>
+              The system waits until the visitor accepts analytics and advertising cookies. Once consent is logged, the
+              AdSense script is initialised and rewarded ad formats can be prepared. We disable autoplaying creatives and
+              label all incentives as advertisements when they originate from third parties.
+            </p>
+          </li>
+          <li>
+            <h3>3. Controlled spin</h3>
+            <p>
+              Players trigger a “prepare” step that requests a rewarded placement or displays contextual tips. After the
+              countdown, the spin button becomes active and the wheel uses weighted probabilities to determine the reward.
+              Cooling periods stop repeat spins until the next eligibility window.
+            </p>
+          </li>
+          <li>
+            <h3>4. Follow-up missions</h3>
+            <p>
+              Win or lose, visitors receive tailored recommendations: articles to read, webinars to attend, or partner offers
+              to explore. This delivers genuine utility and keeps the session rooted in rich, policy-friendly content.
+            </p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="demo" class="section" aria-labelledby="demo-title">
+      <div class="container split">
+        <article>
+          <h2 id="demo-title">Try the policy-safe spin demo</h2>
+          <p>
+            The demo below mirrors how we gate gameplay behind meaningful engagement. Use it to test copy variations or to
+            show reviewers the safeguards that prevent empty ad calls. Once your production environment is ready, replace
+            the placeholder rewards with your live catalogue.
+          </p>
+          <p>
+            Remember to localise time zones, display official contest rules, and provide clear contact information for
+            support queries. We also recommend embedding a public changelog so that regulators and partners can track
+            updates.
+          </p>
+        </article>
+        <aside class="demo-card" aria-label="Spin wheel demo">
+          <h3>Daily spin sandbox</h3>
+          <p id="status" class="status" aria-live="polite"></p>
+          <div class="button-group">
+            <button id="prepare-btn" class="btn btn-secondary">Prepare reward experience</button>
+            <button id="spin-btn" class="btn btn-accent" disabled aria-disabled="true">Spin now</button>
+          </div>
+          <p id="result" class="result" aria-live="polite"></p>
+          <p class="demo-note">
+            Spins reset every two hours in this sandbox. In production you can tune the cadence to match your promotion.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="monetization" class="section section--alt" aria-labelledby="monetization-title">
+      <div class="container">
+        <h2 id="monetization-title">Monetisation standards and ad placement strategy</h2>
+        <div class="grid three">
+          <article>
+            <h3>Context comes first</h3>
+            <p>
+              Ads are embedded only after a substantial block of editorial copy, video explainers, or interactive lessons.
+              We avoid infinite scroll layouts that surface blank slots and instead curate focused, thematic pages with a
+              clear beginning, middle, and end.
+            </p>
+          </article>
+          <article>
+            <h3>Rewarded ads with disclosure</h3>
+            <p>
+              When offering rewarded ad experiences, labels such as “Advertisement – watch to unlock a spin” are required.
+              Our template ensures the disclosure is announced to assistive technologies and presented before any play
+              button becomes active.
+            </p>
+          </article>
+          <article>
+            <h3>Continuous optimisation</h3>
+            <p>
+              Weekly audits review viewability, latency, and policy changes. If an ad network or campaign fails to meet the
+              criteria, it is paused and replaced with house content or learning modules so that users never encounter
+              empty, low-value screens.
+            </p>
+          </article>
+        </div>
+        <div id="ad-demo" class="ad-demo" data-visible="false" aria-label="Sample responsive ad placement">
+          <h3>Sample footer ad placement</h3>
+          <p>
+            After consent is granted, AdSense can serve a responsive banner in this reserved space. Until then the area
+            remains collapsed so that visitors see editorial content instead of blank placeholders.
+          </p>
+          <div class="ads-wrapper">
+            <ins class="adsbygoogle mobile" style="display:inline-block;width:320px;height:50px"></ins>
+            <ins class="adsbygoogle desktop" style="display:inline-block;width:728px;height:90px"></ins>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="resources" class="section" aria-labelledby="resources-title">
+      <div class="container">
+        <h2 id="resources-title">Resource library</h2>
+        <div class="grid three">
+          <article class="resource">
+            <h3>Editorial calendar template</h3>
+            <p>
+              Plan four weeks of content that pairs each spin theme with in-depth articles, downloadable worksheets, and
+              conversation starters for community channels. The guide includes prompts that help writers avoid duplicate or
+              thin content issues.
+            </p>
+            <a href="#contact" class="link">Request the calendar worksheet</a>
+          </article>
+          <article class="resource">
+            <h3>Compliance checklist</h3>
+            <p>
+              A step-by-step document that covers privacy notices, regional prize restrictions, accessibility labs, and
+              ad inventory separation. The checklist maps every requirement to the relevant AdSense and AdMob policies.
+            </p>
+            <a href="#contact" class="link">Download the compliance checklist</a>
+          </article>
+          <article class="resource">
+            <h3>Case study: Community finance portal</h3>
+            <p>
+              Learn how a personal finance publisher increased newsletter opt-ins by 48% after bundling a weekly spin with
+              budgeting tutorials, moderated Q&amp;A sessions, and certified partner offers that respected user trust.
+            </p>
+            <a href="#contact" class="link">Read the full case study</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" class="section section--alt" aria-labelledby="faq-title">
+      <div class="container">
+        <h2 id="faq-title">Frequently asked questions</h2>
+        <div class="faq">
+          <details>
+            <summary>How much content do I need around the spin wheel?</summary>
+            <p>
+              We recommend at least 600 words of original, topic-focused text plus supplementary media such as infographics
+              or short videos. Every spin page should feel like a mini guide, not a thin landing page.
+            </p>
+          </details>
+          <details>
+            <summary>Can I run the spin on mobile web and apps?</summary>
+            <p>
+              Yes. The same configuration applies to responsive web builds, progressive web apps, and wrapped hybrid apps.
+              Ensure you follow the AdMob rewarded formats policy when embedding inside an application shell.
+            </p>
+          </details>
+          <details>
+            <summary>What data is stored about my players?</summary>
+            <p>
+              Only pseudonymous identifiers, consent choices, and reward histories are stored. Personally identifiable
+              information remains optional and, when collected for fulfilment, is encrypted using industry-standard
+              algorithms with strict retention periods.
+            </p>
+          </details>
+          <details>
+            <summary>How do you keep spam or abuse under control?</summary>
+            <p>
+              Automated checks look for suspicious spin patterns, device spoofing, and rapid account creation. Suspicious
+              sessions trigger extra verification steps or manual review before high-value rewards are dispatched.
+            </p>
+          </details>
+          <details>
+            <summary>Do you provide creative assets for the ads?</summary>
+            <p>
+              We supply sizing guides and brand-safe colour palettes. Actual creatives should be delivered by your ad
+              operations team or trusted partners so that policy compliance is maintained across every campaign.
+            </p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="section" aria-labelledby="contact-title">
+      <div class="container split">
+        <div>
+          <h2 id="contact-title">Ready to elevate your rewards programme?</h2>
+          <p>
+            Our specialists can review your site structure, suggest editorial enhancements, and configure compliant ad
+            experiences. Contact us for a complimentary assessment or schedule a workshop for your content and product
+            teams.
+          </p>
+          <ul class="contact-list">
+            <li><strong>Email:</strong> <a href="mailto:hello@spinrewardshub.com">hello@spinrewardshub.com</a></li>
+            <li><strong>Office hours:</strong> Monday–Friday, 9:00–18:00 (UTC)</li>
+            <li><strong>Media kit:</strong> <a href="#resources">Access press-ready assets</a></li>
+          </ul>
+        </div>
+        <form class="contact-form" aria-label="Contact form">
+          <div class="form-field">
+            <label for="name">Full name</label>
+            <input id="name" name="name" type="text" autocomplete="name" required />
+          </div>
+          <div class="form-field">
+            <label for="email">Work email</label>
+            <input id="email" name="email" type="email" autocomplete="email" required />
+          </div>
+          <div class="form-field">
+            <label for="message">How can we help?</label>
+            <textarea id="message" name="message" rows="4" required></textarea>
+          </div>
+          <p class="form-note">Submitting this form creates a support ticket. We reply within one business day.</p>
+          <button type="submit" class="btn btn-primary">Request a consultation</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <h2 class="footer-title">Spin Rewards Hub</h2>
+        <p>
+          A content-first approach to promotional spins. We help publishers create meaningful experiences that delight
+          users, protect their data, and respect advertising policies across every channel.
+        </p>
+      </div>
+      <nav aria-label="Footer navigation">
+        <ul class="footer-links">
+          <li><a href="#overview">Programme overview</a></li>
+          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="#monetization">Monetisation standards</a></li>
+          <li><a href="#resources">Resource library</a></li>
+        </ul>
+      </nav>
+      <div class="footer-meta">
+        <ul>
+          <li><a href="privacy.html">Privacy Notice</a></li>
+          <li><a href="terms.html">Terms of Service</a></li>
+          <li><a href="mailto:compliance@spinrewardshub.com">Report an issue</a></li>
+        </ul>
+        <p class="copyright">© <span id="year">2024</span> Spin Rewards Hub. All rights reserved.</p>
+      </div>
     </div>
-    <div class="face back">
-      <h2>Leaderboard</h2>
-      <table id="board">
-        <thead><tr><th>User</th><th>Points</th></tr></thead>
-        <tbody></tbody>
-      </table>
-      <button id="backBtn">Back</button>
-    </div>
-  </div>
-  </div>
-  <div id="win-popup">
-    <div id="fireworks-container"></div>
-    <div class="popup-content">
-      <span id="popup-close">&times;</span>
-      <p id="popup-message">Congratulation, you won <span id="popup-amount"></span> points</p>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/fireworks-js@2/dist/index.umd.js"></script>
-  <script>
-let config;
-let segments = [];
-const colors = ["#ff9f1c", "#e71d36", "#2ec4b6", "#3a86ff", "#8338ec", "#ff006e", "#0ead69", "#fb5607"];
-
-function getUser() {
-  const name = localStorage.getItem('userName');
-  const phone = localStorage.getItem('userPhone');
-  if (!name || !phone) {
-    window.location.href = 'login.html';
-    return { name: '', phone: '' };
-  }
-  return { name, phone };
-}
-
-const user = getUser();
-const userId = user.phone;
-document.getElementById('user-id').textContent = 'User: ' + user.name;
-const userPointsEl = document.getElementById('user-points');
-let totalPoints = 0;
-const canvas = document.getElementById('wheel');
-const spinBtn = document.getElementById('spin');
-const resultEl = document.getElementById('result');
-const timerEl = document.getElementById('next-spin-timer');
-let countdown;
-
-async function loadUserPoints() {
-  try {
-    const res = await fetch(`/api/users/${userId}`);
-    const data = await res.json();
-    totalPoints = data.points;
-    userPointsEl.textContent = 'Total Points: ' + totalPoints;
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-loadUserPoints();
-
-async function updateSpinStatus() {
-  try {
-    const res = await fetch('/api/canspin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: userId })
-    });
-    const data = await res.json();
-    if (data.canSpin) {
-      spinBtn.disabled = false;
-      timerEl.textContent = '';
-      if (countdown) clearInterval(countdown);
-    } else {
-      spinBtn.disabled = true;
-      if (data.nextSpin) startTimer(new Date(data.nextSpin));
-    }
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-function startTimer(target) {
-  if (countdown) clearInterval(countdown);
-  function tick() {
-    const diff = target - Date.now();
-    if (diff <= 0) {
-      clearInterval(countdown);
-      updateSpinStatus();
-      return;
-    }
-    const s = Math.floor(diff / 1000) % 60;
-    const m = Math.floor(diff / (1000 * 60)) % 60;
-    const h = Math.floor(diff / (1000 * 60 * 60));
-    timerEl.textContent = `Next spin in ${h}h ${m}m ${s}s`;
-  }
-  tick();
-  countdown = setInterval(tick, 1000);
-}
-
-let fireworks;
-const popup = document.getElementById('win-popup');
-const popupAmount = document.getElementById('popup-amount');
-const popupClose = document.getElementById('popup-close');
-const fireworksContainer = document.getElementById('fireworks-container');
-
-function showPopup(points) {
-  popupAmount.textContent = points;
-  popup.classList.add('show');
-  if (!fireworks) {
-    fireworks = new Fireworks.default(fireworksContainer, { autoresize: true });
-  }
-  fireworks.start();
-}
-
-function hidePopup() {
-  popup.classList.remove('show');
-  if (fireworks) fireworks.stop();
-}
-
-popupClose.addEventListener('click', hidePopup);
-
-async function loadConfig() {
-  try {
-    const res = await fetch('/api/config');
-    config = await res.json();
-  segments = config.rewardSegments.map((s, i) => ({ label: s.label, value: s.value, color: colors[i % colors.length] }));
-    const logoImg = document.getElementById('hub-logo');
-    if (config.logo) {
-      logoImg.src = config.logo;
-      logoImg.style.display = 'block';
-    } else {
-      logoImg.style.display = 'none';
-    }
-    drawWheel();
-  } catch (err) {
-    console.error('Failed to load config', err);
-  }
-}
-
-function drawWheel() {
-  const canvas = document.getElementById('wheel');
-  const ctx = canvas.getContext('2d');
-  const radius = canvas.width / 2;
-  const step = 2 * Math.PI / segments.length;
-
-  segments.forEach((seg, i) => {
-    const start = i * step;
-    const end = start + step;
-
-    ctx.beginPath();
-    ctx.moveTo(radius, radius);
-    ctx.arc(radius, radius, radius, start, end);
-    ctx.fillStyle = seg.color;
-    ctx.fill();
-
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(radius, radius);
-    ctx.arc(radius, radius, radius, start, end);
-    ctx.stroke();
-
-    ctx.save();
-    ctx.translate(radius, radius);
-    ctx.rotate(start + step / 2);
-    ctx.textAlign = 'right';
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 14px system-ui';
-    ctx.fillText(seg.label, radius - 10, 4);
-    ctx.restore();
-  });
-}
-
-loadConfig();
-updateSpinStatus();
-
-// --- Spin logic ---
-function pickSegment() {
-  const rand = Math.random();
-  let sum = 0;
-  for (let i = 0; i < config.rewardSegments.length; i++) {
-    sum += config.rewardSegments[i].probability;
-    if (rand < sum) return i;
-  }
-  return config.rewardSegments.length - 1;
-}
-
-spinBtn.addEventListener('click', async () => {
-  const statusRes = await fetch('/api/canspin', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ phone: userId })
-  });
-  const status = await statusRes.json();
-  if (!status.canSpin) {
-    if (status.nextSpin) startTimer(new Date(status.nextSpin));
-    return;
-  }
-  spinBtn.disabled = true;
-  const step = 360 / segments.length;
-  const index = pickSegment();
-  const deg = 3600 + 270 - (index * step + step / 2);
-  canvas.style.transition = 'transform 4s ease-out';
-  canvas.style.transform = `rotate(${deg}deg)`;
-  canvas.addEventListener('transitionend', async () => {
-    canvas.style.transition = 'none';
-    canvas.style.transform = `rotate(${deg % 360}deg)`;
-    const seg = segments[index];
-    resultEl.textContent = `You won: ${seg.label}`;
-    showPopup(seg.value);
-    try {
-      const res = await fetch('/api/logs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, rewardType: seg.label })
-      });
-      const data = await res.json();
-      totalPoints = data.points;
-      userPointsEl.textContent = 'Total Points: ' + totalPoints;
-    } catch (err) {
-      console.error(err);
-    }
-    updateSpinStatus();
-  }, { once: true });
-});
-// --- Leaderboard flip ---
-const cardEl = document.getElementById('card');
-const leaderboardBtn = document.getElementById('leaderboardBtn');
-const accountBtn = document.getElementById('accountBtn');
-const redeemBtn = document.getElementById('redeemBtn');
-const backBtn = document.getElementById('backBtn');
-const tbody = document.querySelector('#board tbody');
-
-async function loadLeaderboard() {
-  try {
-    const res = await fetch('/api/leaderboard');
-    const board = await res.json();
-    tbody.innerHTML = '';
-    if (board.length === 0) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = '<td colspan="2">No entries yet</td>';
-      tbody.appendChild(tr);
-    } else {
-      board.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${row.name}</td><td>${row.points}</td>`;
-        tbody.appendChild(tr);
-      });
-    }
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-function showLeaderboard() {
-  loadLeaderboard();
-  cardEl.classList.add('flipped');
-}
-
-function showWheel() {
-  cardEl.classList.remove('flipped');
-}
-
-leaderboardBtn.addEventListener('click', showLeaderboard);
-backBtn.addEventListener('click', showWheel);
-const adminBtn = document.getElementById('adminBtn');
-adminBtn.addEventListener('click', () => {
-  window.location.href = 'admin.html';
-});
-redeemBtn.addEventListener('click', () => {
-  window.location.href = 'redemption.html';
-});
-accountBtn.addEventListener('click', () => {
-  window.location.href = 'account.html';
-});
-const logoutBtn = document.getElementById('logoutBtn');
-logoutBtn.addEventListener('click', () => {
-  localStorage.removeItem('userName');
-  localStorage.removeItem('userPhone');
-  window.location.href = 'login.html';
-});
-</script>
+  </footer>
 </body>
 </html>
