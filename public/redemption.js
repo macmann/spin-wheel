@@ -73,7 +73,7 @@ rewardsEl.addEventListener('click', async e => {
 });
 
 document.getElementById('backBtn').addEventListener('click', () => {
-  window.location.href = 'index.html';
+  window.location.href = 'experience.html';
 });
 refresh();
 

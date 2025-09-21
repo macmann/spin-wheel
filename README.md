@@ -27,7 +27,8 @@ npm run gen -- "Write a Python function that checks if a string is a palindrome.
 
 Static pages for a 10‑segment spin wheel and admin panel live in `public/`.
 
-- Open `public/index.html` to view and spin the wheel.
+- Open `public/index.html` to view the AdSense-friendly marketing site.
+- Launch the actual prize wheel via `public/experience.html`; it retains the original spin logic.
 - Use the “Go to Admin Panel” button to edit segment labels (stored in `localStorage`).
 
 ### AdSense Configuration
