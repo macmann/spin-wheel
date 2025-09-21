@@ -2,15 +2,84 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Leaderboard</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Top players in the Spin Rewards Hub experience." />
+  <title>Leaderboard – Spin Rewards Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="app.js" defer></script>
+  <script src="leaderboard.js" defer></script>
 </head>
-<body>
-  <a href="experience.html" class="admin-link">Back to Wheel</a>
-  <table id="board">
-    <thead><tr><th>User</th><th>Points</th></tr></thead>
-    <tbody></tbody>
-  </table>
-  <script src="leaderboard.js"></script>
+<body class="page">
+  <header class="site-header" id="top">
+    <div class="container header-content">
+      <a class="logo" href="index.html" aria-label="Spin Rewards Hub home">Spin Rewards Hub</a>
+      <nav aria-label="Primary navigation">
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+        <ul id="primary-nav" class="nav-list">
+          <li><a href="index.html#overview">Overview</a></li>
+          <li><a href="index.html#how-it-works">How it works</a></li>
+          <li><a href="index.html#monetization">Monetisation</a></li>
+          <li><a href="index.html#resources">Resources</a></li>
+          <li><a href="index.html#faq">FAQ</a></li>
+          <li><a href="experience.html">Player experience</a></li>
+          <li><a class="nav-cta" href="redemption.html">Redeem rewards</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <div class="container narrow">
+      <section class="card leaderboard-card">
+        <div class="page-header">
+          <h1>Top players</h1>
+          <p>The leaderboard refreshes every few minutes to highlight players with the highest point balances across the programme.</p>
+        </div>
+        <div class="table-wrapper" role="region" aria-live="polite" aria-label="Leaderboard results">
+          <table id="board" class="data-table">
+            <thead>
+              <tr><th scope="col">Player</th><th scope="col">Points</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="form-actions">
+          <a class="btn btn-secondary" href="experience.html">Back to experience</a>
+          <a class="btn btn-ghost" href="account.html">My account</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <h2 class="footer-title">Spin Rewards Hub</h2>
+        <p>
+          A content-first approach to promotional spins. We help publishers create meaningful experiences that delight
+          users, protect their data, and respect advertising policies across every channel.
+        </p>
+      </div>
+      <nav aria-label="Footer navigation">
+        <ul class="footer-links">
+          <li><a href="index.html#overview">Programme overview</a></li>
+          <li><a href="index.html#how-it-works">How it works</a></li>
+          <li><a href="index.html#monetization">Monetisation standards</a></li>
+          <li><a href="index.html#resources">Resource library</a></li>
+        </ul>
+      </nav>
+      <div class="footer-meta">
+        <ul>
+          <li><a href="privacy.html">Privacy Notice</a></li>
+          <li><a href="terms.html">Terms of Service</a></li>
+          <li><a href="mailto:compliance@spinrewardshub.com">Report an issue</a></li>
+        </ul>
+        <p class="copyright">© <span id="year">2024</span> Spin Rewards Hub. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>

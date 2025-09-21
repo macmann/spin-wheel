@@ -1,617 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lucky Wheel</title>
-<style>
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #0d0d2b;
-  font-family: system-ui, sans-serif;
-  color: #fff;
-}
-
-.scene {
-  width: 90%;
-  max-width: 420px;
-  perspective: 1000px;
-}
-
-#card {
-  width: 100%;
-  height: clamp(520px, 80vh, 560px);
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.8s;
-}
-
-#card.flipped {
-  transform: rotateY(180deg);
-}
-
-.face {
-  background: #1b1b3a;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  text-align: center;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  backface-visibility: hidden;
-}
-
-.face.back {
-  transform: rotateY(180deg);
-}
-
-h1 {
-  margin: 0;
-  font-size: clamp(1.5rem, 6vw, 2rem);
-  font-weight: 700;
-  background: linear-gradient(45deg,#ff7a00,#ffe600);
-  -webkit-background-clip: text;
-  color: transparent;
-  letter-spacing: 1px;
-}
-
-.subtitle {
-  margin-top: 8px;
-  color: #ccc;
-}
-
-#user-id {
-  margin-top: 4px;
-  font-size: 0.9rem;
-  color: #aaa;
-}
-
-/* wheel */
-#wheel-wrapper {
-  position: relative;
-  margin: 24px auto;
-  width: min(80vw, 300px);
-  height: min(80vw, 300px);
-}
-
-#wheel {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  border: 8px solid #fff;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-  position: relative;
-  z-index: 1;
-}
-
-.pointer {
-  position: absolute;
-  top: -18px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 15px solid transparent;
-  border-right: 15px solid transparent;
-  border-bottom: 25px solid #e74c3c;
-  z-index: 3;
-}
-
-.hub {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: clamp(50px, 15vw, 70px);
-  height: clamp(50px, 15vw, 70px);
-  background: #fff;
-  color: #000;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(0.7rem, 2vw, 0.8rem);
-  z-index: 2;
-  box-shadow: 0 0 6px rgba(0,0,0,0.6) inset;
-}
-
-.hub img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.axle {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: calc(100% + 40px);
-  height: 12px;
-  background: #888;
-  transform: translate(-50%, -50%);
-  border-radius: 6px;
-  z-index: 0;
-}
-
-/* buttons */
-button {
-  border: none;
-  border-radius: 9999px;
-  padding: 12px 24px;
-  font-size: 1rem;
-  color: #fff;
-  cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-  transition: background 0.2s;
-}
-
-button:focus {
-  outline: 2px solid #fff;
-  outline-offset: 2px;
-}
-
-#spin {
-  background: #e74c3c;
-}
-
-#spin:hover:not(:disabled) {
-  background: #c0392b;
-}
-
-#spin:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-#result {
-  margin-top: 16px;
-}
-
-#next-spin-timer {
-  margin-top: 8px;
-}
-
-#leaderboardBtn {
-  margin-top: 16px;
-  background: #2ecc71;
-}
-
-#leaderboardBtn:hover {
-  background: #27ae60;
-}
-
-#adminBtn {
-  margin-top: 10px;
-  background: #2980b9;
-}
-
-#adminBtn:hover {
-  background: #3498db;
-}
-
-#accountBtn {
-  margin-top: 10px;
-  background: orange;
-}
-
-#accountBtn:hover {
-  background: darkorange;
-}
-
-#redeemBtn {
-  margin-top: 10px;
-  background: violet;
-}
-
-#redeemBtn:hover {
-  background: darkviolet;
-}
-
-#logoutBtn {
-  margin-top: 10px;
-  background: brown;
-}
-
-#logoutBtn:hover {
-  background: #8b4513;
-}
-
-/* leaderboard table */
-#board {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 16px;
-}
-
-#board th, #board td {
-  border-bottom: 1px solid #333;
-  padding: 8px;
-}
-
-#board th {
-  text-align: left;
-}
-
-#backBtn {
-  margin-top: 16px;
-  background: #e74c3c;
-}
-
-#backBtn:hover {
-  background: #c0392b;
-}
-#card.flipped .front {
-  pointer-events: none;
-}
-  #card:not(.flipped) .back {
-    pointer-events: none;
-  }
-
-  /* win popup */
-  #win-popup {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.8);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-
-  #win-popup.show {
-    display: flex;
-  }
-
-  #fireworks-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-  }
-
-  .popup-content {
-    position: relative;
-    background: #1b1b3a;
-    padding: 24px 40px;
-    border-radius: 16px;
-    text-align: center;
-    z-index: 1;
-  }
-
-  #popup-close {
-    position: absolute;
-    top: 8px;
-    right: 12px;
-    font-size: 24px;
-    cursor: pointer;
-    color: #fff;
-  }
-
-@media (max-width: 480px) {
-  .face {
-    padding: 16px;
-  }
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Experience the Spin Rewards Hub compliant daily prize wheel." />
+  <title>Player experience – Spin Rewards Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="app.js" defer></script>
+  <script src="wheel.js" defer></script>
 </head>
-<body>
-<div class="scene">
-  <div id="card">
-    <div class="face front">
-      <h1>LUCKY WHEEL</h1>
-      <p class="subtitle">Spin the wheel to win a prize!</p>
-      <p id="user-id">User:</p>
-      <p id="user-points">Total Points: 0</p>
+<body class="page">
+  <header class="site-header" id="top">
+    <div class="container header-content">
+      <a class="logo" href="index.html" aria-label="Spin Rewards Hub home">Spin Rewards Hub</a>
+      <nav aria-label="Primary navigation">
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+        <ul id="primary-nav" class="nav-list">
+          <li><a href="index.html#overview">Overview</a></li>
+          <li><a href="index.html#how-it-works">How it works</a></li>
+          <li><a href="index.html#monetization">Monetisation</a></li>
+          <li><a href="index.html#resources">Resources</a></li>
+          <li><a href="index.html#faq">FAQ</a></li>
+          <li><a href="index.html#contact">Contact</a></li>
+          <li><a class="nav-cta" href="login.html">Sign in</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
 
-      <div id="wheel-wrapper">
-        <div class="axle"></div>
-        <canvas id="wheel" width="300" height="300"></canvas>
-        <div class="pointer"></div>
-        <div class="hub"><img id="hub-logo" alt="Logo" /></div>
+  <main class="page-main">
+    <div class="container experience-grid">
+      <section class="card experience-card">
+        <div class="experience-intro">
+          <p class="eyebrow">Daily reward experience</p>
+          <h1>Spin Rewards wheel</h1>
+          <p class="muted">Launch the compliant demo experience. Every spin is backed by editorial context, transparent odds, and a clear cooling period.</p>
+          <p id="balance" class="experience-balance" aria-live="polite">Balance: --</p>
+        </div>
+        <div class="experience-wheel" role="img" aria-label="Spin Rewards prize wheel">
+          <div class="wheel-pointer" aria-hidden="true"></div>
+          <canvas id="wheel" width="360" height="360"></canvas>
+          <div class="wheel-hub" aria-hidden="true">
+            <img id="hub-logo" alt="Spin Rewards logo" />
+          </div>
+          <div class="wheel-axle" aria-hidden="true"></div>
+        </div>
+        <div class="experience-actions">
+          <button id="spin" class="btn btn-primary">Spin now</button>
+          <p class="form-note">Eligible players receive one spin per interval. New segments publish daily at midnight.</p>
+        </div>
+        <div class="experience-links">
+          <a href="leaderboard.html">View leaderboard</a>
+          <a href="redemption.html">Redeem rewards</a>
+          <a href="account.html">My account</a>
+        </div>
+      </section>
+
+      <aside class="card experience-side">
+        <h2>What to expect</h2>
+        <p>Every spin session blends editorial storytelling with responsible reward mechanics. Use this demo to explore how policy-compliant experiences feel for players.</p>
+        <ul>
+          <li>Log in with your registered phone number to sync progress.</li>
+          <li>Weighted reward segments match the admin configuration in real time.</li>
+          <li>Activity is logged for auditing so policy teams can review trends.</li>
+        </ul>
+        <div class="button-group-inline">
+          <a class="btn btn-secondary btn-small" href="login.html">Sign in</a>
+          <a class="btn btn-ghost btn-small" href="register.html">Create account</a>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <h2 class="footer-title">Spin Rewards Hub</h2>
+        <p>
+          A content-first approach to promotional spins. We help publishers create meaningful experiences that delight
+          users, protect their data, and respect advertising policies across every channel.
+        </p>
       </div>
-
-      <button id="spin">Spin</button>
-      <div id="next-spin-timer"></div>
-      <div id="result" aria-live="polite">Spin to win points!</div>
-      <button id="leaderboardBtn">Show Leaderboard</button>
-      <button id="accountBtn">My Account</button>
-      <button id="redeemBtn">Redeem Rewards</button>
-      <button id="adminBtn">Admin Panel</button>
-      <button id="logoutBtn">Logout</button>
+      <nav aria-label="Footer navigation">
+        <ul class="footer-links">
+          <li><a href="index.html#overview">Programme overview</a></li>
+          <li><a href="index.html#how-it-works">How it works</a></li>
+          <li><a href="index.html#monetization">Monetisation standards</a></li>
+          <li><a href="index.html#resources">Resource library</a></li>
+        </ul>
+      </nav>
+      <div class="footer-meta">
+        <ul>
+          <li><a href="privacy.html">Privacy Notice</a></li>
+          <li><a href="terms.html">Terms of Service</a></li>
+          <li><a href="mailto:compliance@spinrewardshub.com">Report an issue</a></li>
+        </ul>
+        <p class="copyright">© <span id="year">2024</span> Spin Rewards Hub. All rights reserved.</p>
+      </div>
     </div>
-    <div class="face back">
-      <h2>Leaderboard</h2>
-      <table id="board">
-        <thead><tr><th>User</th><th>Points</th></tr></thead>
-        <tbody></tbody>
-      </table>
-      <button id="backBtn">Back</button>
-    </div>
-  </div>
-  </div>
-  <div id="win-popup">
-    <div id="fireworks-container"></div>
-    <div class="popup-content">
-      <span id="popup-close">&times;</span>
-      <p id="popup-message">Congratulation, you won <span id="popup-amount"></span> points</p>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/fireworks-js@2/dist/index.umd.js"></script>
-  <script>
-let config;
-let segments = [];
-const colors = ["#ff9f1c", "#e71d36", "#2ec4b6", "#3a86ff", "#8338ec", "#ff006e", "#0ead69", "#fb5607"];
-
-function getUser() {
-  const name = localStorage.getItem('userName');
-  const phone = localStorage.getItem('userPhone');
-  if (!name || !phone) {
-    window.location.href = 'login.html';
-    return { name: '', phone: '' };
-  }
-  return { name, phone };
-}
-
-const user = getUser();
-const userId = user.phone;
-document.getElementById('user-id').textContent = 'User: ' + user.name;
-const userPointsEl = document.getElementById('user-points');
-let totalPoints = 0;
-const canvas = document.getElementById('wheel');
-const spinBtn = document.getElementById('spin');
-const resultEl = document.getElementById('result');
-const timerEl = document.getElementById('next-spin-timer');
-let countdown;
-
-async function loadUserPoints() {
-  try {
-    const res = await fetch(`/api/users/${userId}`);
-    const data = await res.json();
-    totalPoints = data.points;
-    userPointsEl.textContent = 'Total Points: ' + totalPoints;
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-loadUserPoints();
-
-async function updateSpinStatus() {
-  try {
-    const res = await fetch('/api/canspin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: userId })
-    });
-    const data = await res.json();
-    if (data.canSpin) {
-      spinBtn.disabled = false;
-      timerEl.textContent = '';
-      if (countdown) clearInterval(countdown);
-    } else {
-      spinBtn.disabled = true;
-      if (data.nextSpin) startTimer(new Date(data.nextSpin));
-    }
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-function startTimer(target) {
-  if (countdown) clearInterval(countdown);
-  function tick() {
-    const diff = target - Date.now();
-    if (diff <= 0) {
-      clearInterval(countdown);
-      updateSpinStatus();
-      return;
-    }
-    const s = Math.floor(diff / 1000) % 60;
-    const m = Math.floor(diff / (1000 * 60)) % 60;
-    const h = Math.floor(diff / (1000 * 60 * 60));
-    timerEl.textContent = `Next spin in ${h}h ${m}m ${s}s`;
-  }
-  tick();
-  countdown = setInterval(tick, 1000);
-}
-
-let fireworks;
-const popup = document.getElementById('win-popup');
-const popupAmount = document.getElementById('popup-amount');
-const popupClose = document.getElementById('popup-close');
-const fireworksContainer = document.getElementById('fireworks-container');
-
-function showPopup(points) {
-  popupAmount.textContent = points;
-  popup.classList.add('show');
-  if (!fireworks) {
-    fireworks = new Fireworks.default(fireworksContainer, { autoresize: true });
-  }
-  fireworks.start();
-}
-
-function hidePopup() {
-  popup.classList.remove('show');
-  if (fireworks) fireworks.stop();
-}
-
-popupClose.addEventListener('click', hidePopup);
-
-async function loadConfig() {
-  try {
-    const res = await fetch('/api/config');
-    config = await res.json();
-  segments = config.rewardSegments.map((s, i) => ({ label: s.label, value: s.value, color: colors[i % colors.length] }));
-    const logoImg = document.getElementById('hub-logo');
-    if (config.logo) {
-      logoImg.src = config.logo;
-      logoImg.style.display = 'block';
-    } else {
-      logoImg.style.display = 'none';
-    }
-    drawWheel();
-  } catch (err) {
-    console.error('Failed to load config', err);
-  }
-}
-
-function drawWheel() {
-  const canvas = document.getElementById('wheel');
-  const ctx = canvas.getContext('2d');
-  const radius = canvas.width / 2;
-  const step = 2 * Math.PI / segments.length;
-
-  segments.forEach((seg, i) => {
-    const start = i * step;
-    const end = start + step;
-
-    ctx.beginPath();
-    ctx.moveTo(radius, radius);
-    ctx.arc(radius, radius, radius, start, end);
-    ctx.fillStyle = seg.color;
-    ctx.fill();
-
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(radius, radius);
-    ctx.arc(radius, radius, radius, start, end);
-    ctx.stroke();
-
-    ctx.save();
-    ctx.translate(radius, radius);
-    ctx.rotate(start + step / 2);
-    ctx.textAlign = 'right';
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 14px system-ui';
-    ctx.fillText(seg.label, radius - 10, 4);
-    ctx.restore();
-  });
-}
-
-loadConfig();
-updateSpinStatus();
-
-// --- Spin logic ---
-function pickSegment() {
-  const rand = Math.random();
-  let sum = 0;
-  for (let i = 0; i < config.rewardSegments.length; i++) {
-    sum += config.rewardSegments[i].probability;
-    if (rand < sum) return i;
-  }
-  return config.rewardSegments.length - 1;
-}
-
-spinBtn.addEventListener('click', async () => {
-  const statusRes = await fetch('/api/canspin', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ phone: userId })
-  });
-  const status = await statusRes.json();
-  if (!status.canSpin) {
-    if (status.nextSpin) startTimer(new Date(status.nextSpin));
-    return;
-  }
-  spinBtn.disabled = true;
-  const step = 360 / segments.length;
-  const index = pickSegment();
-  const deg = 3600 + 270 - (index * step + step / 2);
-  canvas.style.transition = 'transform 4s ease-out';
-  canvas.style.transform = `rotate(${deg}deg)`;
-  canvas.addEventListener('transitionend', async () => {
-    canvas.style.transition = 'none';
-    canvas.style.transform = `rotate(${deg % 360}deg)`;
-    const seg = segments[index];
-    resultEl.textContent = `You won: ${seg.label}`;
-    showPopup(seg.value);
-    try {
-      const res = await fetch('/api/logs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, rewardType: seg.label })
-      });
-      const data = await res.json();
-      totalPoints = data.points;
-      userPointsEl.textContent = 'Total Points: ' + totalPoints;
-    } catch (err) {
-      console.error(err);
-    }
-    updateSpinStatus();
-  }, { once: true });
-});
-// --- Leaderboard flip ---
-const cardEl = document.getElementById('card');
-const leaderboardBtn = document.getElementById('leaderboardBtn');
-const accountBtn = document.getElementById('accountBtn');
-const redeemBtn = document.getElementById('redeemBtn');
-const backBtn = document.getElementById('backBtn');
-const tbody = document.querySelector('#board tbody');
-
-async function loadLeaderboard() {
-  try {
-    const res = await fetch('/api/leaderboard');
-    const board = await res.json();
-    tbody.innerHTML = '';
-    if (board.length === 0) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = '<td colspan="2">No entries yet</td>';
-      tbody.appendChild(tr);
-    } else {
-      board.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${row.name}</td><td>${row.points}</td>`;
-        tbody.appendChild(tr);
-      });
-    }
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-function showLeaderboard() {
-  loadLeaderboard();
-  cardEl.classList.add('flipped');
-}
-
-function showWheel() {
-  cardEl.classList.remove('flipped');
-}
-
-leaderboardBtn.addEventListener('click', showLeaderboard);
-backBtn.addEventListener('click', showWheel);
-const adminBtn = document.getElementById('adminBtn');
-adminBtn.addEventListener('click', () => {
-  window.location.href = 'admin.html';
-});
-redeemBtn.addEventListener('click', () => {
-  window.location.href = 'redemption.html';
-});
-accountBtn.addEventListener('click', () => {
-  window.location.href = 'account.html';
-});
-const logoutBtn = document.getElementById('logoutBtn');
-logoutBtn.addEventListener('click', () => {
-  localStorage.removeItem('userName');
-  localStorage.removeItem('userPhone');
-  window.location.href = 'login.html';
-});
-</script>
+  </footer>
 </body>
 </html>

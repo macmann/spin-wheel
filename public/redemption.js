@@ -23,20 +23,60 @@ async function loadPoints() {
 
 function renderRewards(rewards) {
   rewardsEl.innerHTML = '';
-  rewards.forEach(r => {
-    const div = document.createElement('div');
-    div.className = 'reward';
-    let html = `<strong>${r.name}</strong> - ${r.cost} pts`;
-    const disabled = r.available === 0 || userPoints < r.cost ? 'disabled' : '';
-    html += `<p>Available: ${r.available}</p>`;
-    if (r.categories && r.categories.length) {
-      html += '<label>Category: <select class="category-select">';
-      html += r.categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
-      html += '</select></label>';
+  if (!rewards.length) {
+    const empty = document.createElement('p');
+    empty.className = 'form-note';
+    empty.textContent = 'No rewards are currently available. Check back soon for new offers.';
+    rewardsEl.appendChild(empty);
+    return;
+  }
+
+  rewards.forEach((reward) => {
+    const container = document.createElement('article');
+    container.className = 'reward';
+
+    const title = document.createElement('strong');
+    title.textContent = reward.name;
+
+    const cost = document.createElement('span');
+    cost.className = 'muted';
+    cost.textContent = `Cost: ${reward.cost} pts`;
+
+    const availability = document.createElement('span');
+    availability.className = 'muted';
+    availability.textContent = `Available: ${reward.available}`;
+
+    container.append(title, cost, availability);
+
+    if (reward.categories && reward.categories.length) {
+      const label = document.createElement('label');
+      label.textContent = 'Category';
+
+      const select = document.createElement('select');
+      select.className = 'category-select';
+      reward.categories.forEach((cat) => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        select.append(option);
+      });
+
+      label.append(select);
+      container.append(label);
     }
-    html += `<button data-id="${r.id}" ${disabled}>Redeem</button>`;
-    div.innerHTML = html;
-    rewardsEl.appendChild(div);
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.id = String(reward.id);
+    button.className = 'btn btn-primary btn-small';
+    button.textContent = 'Redeem';
+
+    if (reward.available === 0 || userPoints < reward.cost) {
+      button.disabled = true;
+    }
+
+    container.append(button);
+    rewardsEl.append(container);
   });
 }
 
