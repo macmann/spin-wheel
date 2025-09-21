@@ -1,125 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #0d0d2b;
-      font-family: system-ui, sans-serif;
-      color: #fff;
-    }
-    .scene {
-      width: 90%;
-      max-width: 400px;
-      perspective: 1000px;
-    }
-    .card {
-      background: #1b1b3a;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-      width: 100%;
-      transform-style: preserve-3d;
-      transition: transform 0.8s;
-    }
-    .card.flipped {
-      transform: rotateY(180deg);
-    }
-    h1 { margin-top: 0; text-align: center; }
-    form { margin-bottom: 16px; }
-    label { display:block; margin:8px 0 4px; }
-    input {
-      width:100%;
-      padding:8px;
-      margin-bottom:8px;
-      border:none;
-      border-radius:8px;
-    }
-    button {
-      padding:8px 16px;
-      border:none;
-      border-radius:8px;
-      cursor:pointer;
-      background:#e74c3c;
-      color:#fff;
-    }
-    .link-btn {
-      background:none;
-      color:#3498db;
-      margin-top:8px;
-      text-decoration:underline;
-    }
-    #logo {
-      display:none;
-      max-width:150px;
-      margin:0 auto 16px;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Secure player login for the Spin Rewards Hub daily spin experience." />
+  <title>Player login – Spin Rewards Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="app.js" defer></script>
 </head>
-<body>
-  <div class="scene">
-    <div id="card" class="card">
-      <img id="logo" alt="Logo" />
-      <h1>Spin Wheel Login</h1>
-      <form id="loginForm">
-        <label>Phone<input type="text" id="logPhone" required></label>
-        <label>Password<input type="password" id="logPass" required></label>
-        <button type="submit">Login</button>
-      </form>
-      <button id="createAccount" class="link-btn">Create Account</button>
+<body class="page">
+  <header class="site-header" id="top">
+    <div class="container header-content">
+      <a class="logo" href="index.html" aria-label="Spin Rewards Hub home">Spin Rewards Hub</a>
+      <nav aria-label="Primary navigation">
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+        <ul id="primary-nav" class="nav-list">
+          <li><a href="index.html#overview">Overview</a></li>
+          <li><a href="index.html#how-it-works">How it works</a></li>
+          <li><a href="index.html#monetization">Monetisation</a></li>
+          <li><a href="index.html#resources">Resources</a></li>
+          <li><a href="index.html#faq">FAQ</a></li>
+          <li><a href="experience.html">Player experience</a></li>
+          <li><a class="nav-cta" href="register.html">Create account</a></li>
+        </ul>
+      </nav>
     </div>
-  </div>
-  <script>
-    const card = document.getElementById('card');
-    const loginForm = document.getElementById('loginForm');
-    const createBtn = document.getElementById('createAccount');
+  </header>
 
-    // Load logo from admin settings
+  <main class="page-main page-main--center">
+    <div class="container narrow">
+      <section class="card auth-card">
+        <div class="auth-card__header">
+          <p class="eyebrow">Player access</p>
+          <h1>Sign in to Spin Rewards</h1>
+          <p class="muted">Track your balance, review redemption history, and access the daily spin experience.</p>
+          <img id="login-logo" class="auth-logo" alt="Programme logo" />
+        </div>
+        <form id="loginForm" class="form-grid" novalidate>
+          <label for="logPhone">
+            Phone number
+            <input type="tel" id="logPhone" name="phone" autocomplete="tel" required />
+          </label>
+          <label for="logPass">
+            Password
+            <input type="password" id="logPass" name="password" autocomplete="current-password" required />
+          </label>
+          <p id="login-message" class="form-response" role="status" aria-live="polite"></p>
+          <div class="form-actions">
+            <button type="submit" id="login-submit" class="btn btn-primary">Sign in</button>
+            <button type="button" id="createAccount" class="btn btn-secondary">Create account</button>
+          </div>
+        </form>
+        <p class="form-note">Need help? Contact <a class="muted-link" href="mailto:support@spinrewardshub.com">support@spinrewardshub.com</a>.</p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <h2 class="footer-title">Spin Rewards Hub</h2>
+        <p>
+          A content-first approach to promotional spins. We help publishers create meaningful experiences that delight
+          users, protect their data, and respect advertising policies across every channel.
+        </p>
+      </div>
+      <nav aria-label="Footer navigation">
+        <ul class="footer-links">
+          <li><a href="index.html#overview">Programme overview</a></li>
+          <li><a href="index.html#how-it-works">How it works</a></li>
+          <li><a href="index.html#monetization">Monetisation standards</a></li>
+          <li><a href="index.html#resources">Resource library</a></li>
+        </ul>
+      </nav>
+      <div class="footer-meta">
+        <ul>
+          <li><a href="privacy.html">Privacy Notice</a></li>
+          <li><a href="terms.html">Terms of Service</a></li>
+          <li><a href="mailto:compliance@spinrewardshub.com">Report an issue</a></li>
+        </ul>
+        <p class="copyright">© <span id="year">2024</span> Spin Rewards Hub. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const loginForm = document.getElementById('loginForm');
+    const loginMessage = document.getElementById('login-message');
+    const createBtn = document.getElementById('createAccount');
+    const submitBtn = document.getElementById('login-submit');
+    const logoEl = document.getElementById('login-logo');
+
+    function setMessage(text, type = '') {
+      loginMessage.textContent = text;
+      loginMessage.classList.toggle('form-response--error', type === 'error');
+    }
+
     fetch('/api/config')
-      .then(r => r.json())
-      .then(cfg => {
-        if (cfg.logo) {
-          const logoEl = document.getElementById('logo');
-          logoEl.src = cfg.logo;
+      .then((response) => response.json())
+      .then((config) => {
+        if (config.logo) {
+          logoEl.src = config.logo;
           logoEl.style.display = 'block';
         }
       })
-      .catch(console.error);
+      .catch(() => {
+        /* Silent failure – logo is optional */
+      });
 
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    loginForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      setMessage('');
+      submitBtn.disabled = true;
+      submitBtn.setAttribute('aria-disabled', 'true');
+
       const body = {
         phone: document.getElementById('logPhone').value.trim(),
-        password: document.getElementById('logPass').value
+        password: document.getElementById('logPass').value,
       };
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      const data = await res.json();
-      if (res.ok) {
-        localStorage.setItem('userName', data.name);
-        localStorage.setItem('userPhone', data.phone);
-        window.location.href = 'experience.html';
-      } else {
-        alert(data.error || 'Login failed');
+
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          localStorage.setItem('userName', data.name);
+          localStorage.setItem('userPhone', data.phone);
+          window.location.href = 'experience.html';
+        } else {
+          setMessage(data.error || 'Login failed. Please check your details and try again.', 'error');
+        }
+      } catch (error) {
+        setMessage('We could not sign you in right now. Please try again in a few moments.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.setAttribute('aria-disabled', 'false');
       }
     });
 
     createBtn.addEventListener('click', () => {
-      card.classList.add('flipped');
-      card.addEventListener('transitionend', () => {
-        window.location.href = 'register.html';
-      }, { once: true });
+      window.location.href = 'register.html';
     });
   </script>
 </body>

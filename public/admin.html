@@ -3,78 +3,150 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Panel</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="description" content="Administrative console for managing Spin Rewards Hub content and rewards." />
+  <title>Admin console – Spin Rewards Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="app.js" defer></script>
+  <script src="admin.js" defer></script>
 </head>
-<body class="admin-page">
-  <div class="admin-container">
-    <h1>Admin Panel</h1>
-    <label><input type="checkbox" id="enabled" /> Enable Daily Spin</label>
-    <label>Reset Time: <input type="time" id="resetTime" value="00:00" /></label>
-
-    <label>Spins per Interval: <input type="number" id="spinsPerInterval" min="1" value="1" /></label>
-    <label>Interval (hours): <input type="number" id="intervalHours" min="1" value="24" /></label>
-
-    <h2>Logo</h2>
-    <input type="file" id="logoInput" accept="image/png, image/jpeg" />
-    <img id="logoPreview" alt="Logo preview" style="max-width:100px; display:none;" />
-
-    <h2>Reward Segments</h2>
-    <div class="table-wrapper">
-      <table id="segments-table">
-        <thead>
-          <tr><th>Label</th><th>Value</th><th>Probability</th><th>Daily Cap</th><th>Action</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+<body class="page">
+  <header class="site-header" id="top">
+    <div class="container header-content">
+      <a class="logo" href="index.html" aria-label="Spin Rewards Hub home">Spin Rewards Hub</a>
+      <nav aria-label="Primary navigation">
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+        <ul id="primary-nav" class="nav-list">
+          <li><a href="experience.html">Player experience</a></li>
+          <li><a href="leaderboard.html">Leaderboard</a></li>
+          <li><a href="redemption.html">Redeem rewards</a></li>
+          <li><a href="account.html">My account</a></li>
+          <li><a class="nav-cta" href="index.html#contact">Contact support</a></li>
+        </ul>
+      </nav>
     </div>
-    <button id="add-segment">Add Segment</button>
-    <button id="save-config">Save Config</button>
+  </header>
 
-    <h2>Redemption Rewards</h2>
-    <div id="reward-section">
-      <input type="text" id="newRewardName" placeholder="Reward name" />
-      <input type="number" id="newRewardCost" placeholder="Cost" />
-      <button id="createReward">Add Reward</button>
-      <ul id="rewardList"></ul>
-    </div>
-
-    <div id="coupon-section" style="display:none;">
-      <h3 id="couponTitle"></h3>
-      <label>Category:
-        <select id="couponCategory">
-          <option value="ATOM">ATOM</option>
-          <option value="Ooredoo">Ooredoo</option>
-          <option value="MPT">MPT</option>
-          <option value="MyTel">MyTel</option>
-        </select>
-      </label>
-      <div id="codeInputs">
-        <input type="text" class="code-input" placeholder="Coupon code" />
+  <main class="page-main">
+    <div class="container">
+      <div class="page-header">
+        <h1>Admin console</h1>
+        <p>Configure the spin cadence, tune reward segments, and monitor redemption activity across the Spin Rewards programme.</p>
       </div>
-      <button id="addCodeInput">Add More</button>
-      <button id="saveCodes">Save Codes</button>
-      <div class="table-wrapper">
-        <table id="codesTable">
-          <thead>
-            <tr><th>Code</th><th>Category</th><th>Used</th><th>UsedBy</th><th>UsedAt</th><th>Action</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+
+      <div class="admin-grid">
+        <section class="card admin-settings">
+          <h2>Daily spin configuration</h2>
+          <div class="form-grid">
+            <label class="checkbox-label"><input type="checkbox" id="enabled" /> Enable daily spin</label>
+            <label for="resetTime">Reset time<input type="time" id="resetTime" value="00:00" /></label>
+            <label for="spinsPerInterval">Spins per interval<input type="number" id="spinsPerInterval" min="1" value="1" /></label>
+            <label for="intervalHours">Interval (hours)<input type="number" id="intervalHours" min="1" value="24" /></label>
+            <label for="logoInput">Programme logo<input type="file" id="logoInput" accept="image/png, image/jpeg" /></label>
+            <img id="logoPreview" class="logo-preview" alt="Logo preview" />
+          </div>
+        </section>
+
+        <section class="card admin-segments">
+          <h2>Reward segments</h2>
+          <p class="form-note">Probabilities should total 1.00 across all segments.</p>
+          <div class="table-wrapper">
+            <table id="segments-table" class="data-table">
+              <thead>
+                <tr><th scope="col">Label</th><th scope="col">Value</th><th scope="col">Probability</th><th scope="col">Daily cap</th><th scope="col">Action</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="button-group-inline">
+            <button id="add-segment" type="button" class="btn btn-secondary btn-small">Add segment</button>
+            <button id="save-config" type="button" class="btn btn-primary btn-small">Save configuration</button>
+          </div>
+        </section>
+
+        <section class="card admin-rewards">
+          <h2>Reward catalogue</h2>
+          <div id="reward-section" class="form-grid">
+            <label for="newRewardName">Reward name<input type="text" id="newRewardName" placeholder="Reward name" /></label>
+            <label for="newRewardCost">Cost (points)<input type="number" id="newRewardCost" placeholder="Cost" /></label>
+            <button id="createReward" type="button" class="btn btn-primary btn-small">Add reward</button>
+          </div>
+          <ul id="rewardList"></ul>
+          <div id="coupon-section" class="coupon-panel" style="display:none;">
+            <h3 id="couponTitle"></h3>
+            <div class="layout-grid layout-grid--two">
+              <label for="couponCategory">Category
+                <select id="couponCategory">
+                  <option value="ATOM">ATOM</option>
+                  <option value="Ooredoo">Ooredoo</option>
+                  <option value="MPT">MPT</option>
+                  <option value="MyTel">MyTel</option>
+                </select>
+              </label>
+              <div class="button-group-inline">
+                <button id="addCodeInput" type="button" class="btn btn-secondary btn-small">Add code field</button>
+                <button id="saveCodes" type="button" class="btn btn-primary btn-small">Save codes</button>
+              </div>
+            </div>
+            <div id="codeInputs" class="form-grid">
+              <input type="text" class="code-input" placeholder="Coupon code" />
+            </div>
+            <div class="table-wrapper">
+              <table id="codesTable" class="data-table">
+                <thead>
+                  <tr><th scope="col">Code</th><th scope="col">Category</th><th scope="col">Used</th><th scope="col">Used by</th><th scope="col">Used at</th><th scope="col">Action</th></tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="card admin-logs">
+          <h2>Activity logs</h2>
+          <div class="table-wrapper">
+            <table id="logs-table" class="data-table">
+              <thead><tr><th scope="col">User</th><th scope="col">Reward</th><th scope="col">Time</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="button-group-inline">
+            <a class="btn btn-ghost btn-small" href="/api/reports/export?type=reward" target="_blank" rel="noopener">Export reward CSV</a>
+            <a class="btn btn-ghost btn-small" href="/api/reports/export?type=summary" target="_blank" rel="noopener">Export summary CSV</a>
+          </div>
+        </section>
       </div>
     </div>
+  </main>
 
-    <h2>Activity Logs</h2>
-    <div class="table-wrapper">
-      <table id="logs-table">
-        <thead><tr><th>User</th><th>Reward</th><th>Time</th></tr></thead>
-        <tbody></tbody>
-      </table>
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <h2 class="footer-title">Spin Rewards Hub</h2>
+        <p>
+          A content-first approach to promotional spins. We help publishers create meaningful experiences that delight
+          users, protect their data, and respect advertising policies across every channel.
+        </p>
+      </div>
+      <nav aria-label="Footer navigation">
+        <ul class="footer-links">
+          <li><a href="index.html#overview">Programme overview</a></li>
+          <li><a href="index.html#how-it-works">How it works</a></li>
+          <li><a href="index.html#monetization">Monetisation standards</a></li>
+          <li><a href="index.html#resources">Resource library</a></li>
+        </ul>
+      </nav>
+      <div class="footer-meta">
+        <ul>
+          <li><a href="privacy.html">Privacy Notice</a></li>
+          <li><a href="terms.html">Terms of Service</a></li>
+          <li><a href="mailto:compliance@spinrewardshub.com">Report an issue</a></li>
+        </ul>
+        <p class="copyright">© <span id="year">2024</span> Spin Rewards Hub. All rights reserved.</p>
+      </div>
     </div>
-    <a href="/api/reports/export?type=reward" target="_blank">Export Reward CSV</a>
-    <a href="/api/reports/export?type=summary" target="_blank">Export Summary CSV</a>
-  </div>
-
-  <script src="admin.js"></script>
+  </footer>
 </body>
 </html>

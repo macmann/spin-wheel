@@ -27,7 +27,7 @@ function addRow(seg = {}) {
     <td><input type="number" value="${seg.value || 0}" /></td>
     <td><input type="number" step="0.01" value="${seg.probability || 0}" /></td>
     <td><input type="number" value="${seg.dailyCap || 0}" /></td>
-    <td><button type="button" class="delete-segment">Delete</button></td>`;
+    <td><button type="button" class="btn btn-ghost btn-small delete-segment">Remove</button></td>`;
   tr.querySelector('.delete-segment').addEventListener('click', () => {
     tr.remove();
   });
@@ -107,9 +107,12 @@ async function loadRewards() {
   rewardList.innerHTML = '';
   rewards.forEach(r => {
     const li = document.createElement('li');
-    li.textContent = `${r.name} (${r.cost || 0} pts) `;
+    const label = document.createElement('span');
+    label.textContent = `${r.name} (${r.cost || 0} pts)`;
+    li.appendChild(label);
     const btn = document.createElement('button');
     btn.textContent = 'Manage Coupons';
+    btn.className = 'btn btn-secondary btn-small';
     btn.addEventListener('click', () => openCoupons(r.id, r.name));
     li.appendChild(btn);
     rewardList.appendChild(li);
@@ -165,6 +168,7 @@ async function loadCodes() {
     if (!c.used) {
       const btn = document.createElement('button');
       btn.textContent = 'Delete';
+      btn.className = 'btn btn-ghost btn-small';
       btn.addEventListener('click', async () => {
         await fetch(`/api/codes/${c.id}`, { method: 'DELETE' });
         loadCodes();

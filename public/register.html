@@ -1,118 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Register</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #0d0d2b;
-      font-family: system-ui, sans-serif;
-      color: #fff;
-    }
-    .scene {
-      width: 90%;
-      max-width: 400px;
-      perspective: 1000px;
-    }
-    .card {
-      background: #1b1b3a;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-      width: 100%;
-      transform-style: preserve-3d;
-      transition: transform 0.8s;
-      transform: rotateY(-180deg);
-    }
-    .card.show {
-      transform: rotateY(0deg);
-    }
-    h1 { margin-top: 0; text-align: center; }
-    form { margin-bottom: 16px; }
-    label { display:block; margin:8px 0 4px; }
-    input {
-      width:100%;
-      padding:8px;
-      margin-bottom:8px;
-      border:none;
-      border-radius:8px;
-    }
-    button {
-      padding:8px 16px;
-      border:none;
-      border-radius:8px;
-      cursor:pointer;
-      background:#e74c3c;
-      color:#fff;
-    }
-    .link-btn {
-      background:none;
-      color:#3498db;
-      margin-top:8px;
-      text-decoration:underline;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Create a Spin Rewards Hub player account to access the daily prize wheel." />
+  <title>Create account – Spin Rewards Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="app.js" defer></script>
 </head>
-<body>
-  <div class="scene">
-    <div id="card" class="card">
-      <h1>Create Account</h1>
-      <form id="registerForm">
-        <label>Name<input type="text" id="regName" required></label>
-        <label>Phone<input type="text" id="regPhone" required></label>
-        <label>Password<input type="password" id="regPass" required></label>
-        <button type="submit">Register</button>
-      </form>
-      <button id="loginLink" class="link-btn">Back to Login</button>
+<body class="page">
+  <header class="site-header" id="top">
+    <div class="container header-content">
+      <a class="logo" href="index.html" aria-label="Spin Rewards Hub home">Spin Rewards Hub</a>
+      <nav aria-label="Primary navigation">
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+        <ul id="primary-nav" class="nav-list">
+          <li><a href="index.html#overview">Overview</a></li>
+          <li><a href="index.html#how-it-works">How it works</a></li>
+          <li><a href="index.html#monetization">Monetisation</a></li>
+          <li><a href="index.html#resources">Resources</a></li>
+          <li><a href="index.html#faq">FAQ</a></li>
+          <li><a href="experience.html">Player experience</a></li>
+          <li><a class="nav-cta" href="login.html">Sign in</a></li>
+        </ul>
+      </nav>
     </div>
-  </div>
+  </header>
+
+  <main class="page-main page-main--center">
+    <div class="container narrow">
+      <section class="card auth-card">
+        <div class="auth-card__header">
+          <p class="eyebrow">Create your profile</p>
+          <h1>Join the Spin Rewards community</h1>
+          <p class="muted">Register once to unlock the daily spin, track your points, and redeem curated rewards.</p>
+          <img id="register-logo" class="auth-logo" alt="Programme logo" />
+        </div>
+        <form id="registerForm" class="form-grid" novalidate>
+          <label for="regName">
+            Full name
+            <input type="text" id="regName" name="name" autocomplete="name" required />
+          </label>
+          <label for="regPhone">
+            Phone number
+            <input type="tel" id="regPhone" name="phone" autocomplete="tel" required />
+          </label>
+          <label for="regPass">
+            Password
+            <input type="password" id="regPass" name="password" autocomplete="new-password" required />
+          </label>
+          <p id="register-message" class="form-response" role="status" aria-live="polite"></p>
+          <div class="form-actions">
+            <button type="submit" id="register-submit" class="btn btn-primary">Create account</button>
+            <button type="button" id="loginLink" class="btn btn-secondary">Back to sign in</button>
+          </div>
+        </form>
+        <p class="form-note">By creating an account you agree to our <a class="muted-link" href="terms.html">Terms of Service</a> and <a class="muted-link" href="privacy.html">Privacy Notice</a>.</p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <h2 class="footer-title">Spin Rewards Hub</h2>
+        <p>
+          A content-first approach to promotional spins. We help publishers create meaningful experiences that delight
+          users, protect their data, and respect advertising policies across every channel.
+        </p>
+      </div>
+      <nav aria-label="Footer navigation">
+        <ul class="footer-links">
+          <li><a href="index.html#overview">Programme overview</a></li>
+          <li><a href="index.html#how-it-works">How it works</a></li>
+          <li><a href="index.html#monetization">Monetisation standards</a></li>
+          <li><a href="index.html#resources">Resource library</a></li>
+        </ul>
+      </nav>
+      <div class="footer-meta">
+        <ul>
+          <li><a href="privacy.html">Privacy Notice</a></li>
+          <li><a href="terms.html">Terms of Service</a></li>
+          <li><a href="mailto:compliance@spinrewardshub.com">Report an issue</a></li>
+        </ul>
+        <p class="copyright">© <span id="year">2024</span> Spin Rewards Hub. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
   <script>
-    const card = document.getElementById('card');
-    const regForm = document.getElementById('registerForm');
-    const loginLink = document.getElementById('loginLink');
+    const registerForm = document.getElementById('registerForm');
+    const registerMessage = document.getElementById('register-message');
+    const registerBtn = document.getElementById('register-submit');
+    const loginBtn = document.getElementById('loginLink');
+    const logoEl = document.getElementById('register-logo');
 
-    window.addEventListener('DOMContentLoaded', () => {
-      requestAnimationFrame(() => {
-        card.classList.add('show');
+    function setMessage(text, type = '') {
+      registerMessage.textContent = text;
+      registerMessage.classList.toggle('form-response--error', type === 'error');
+      registerMessage.classList.toggle('form-response--success', type === 'success');
+    }
+
+    fetch('/api/config')
+      .then((response) => response.json())
+      .then((config) => {
+        if (config.logo) {
+          logoEl.src = config.logo;
+          logoEl.style.display = 'block';
+        }
+      })
+      .catch(() => {
+        /* optional asset */
       });
-    });
 
-    regForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    registerForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      setMessage('');
+      registerBtn.disabled = true;
+      registerBtn.setAttribute('aria-disabled', 'true');
+
       const body = {
         name: document.getElementById('regName').value.trim(),
         phone: document.getElementById('regPhone').value.trim(),
-        password: document.getElementById('regPass').value
+        password: document.getElementById('regPass').value,
       };
-      const res = await fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      const data = await res.json();
-      if (res.ok) {
-        alert('Registered successfully. Please login.');
-        card.classList.remove('show');
-        card.addEventListener('transitionend', () => {
-          window.location.href = 'login.html';
-        }, { once: true });
-      } else {
-        alert(data.error || 'Registration failed');
+
+      try {
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          setMessage('Registration successful! Redirecting to sign in…', 'success');
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 1200);
+        } else {
+          setMessage(data.error || 'Registration failed. Please review your details and try again.', 'error');
+        }
+      } catch (error) {
+        setMessage('We could not create your account right now. Please try again shortly.', 'error');
+      } finally {
+        registerBtn.disabled = false;
+        registerBtn.setAttribute('aria-disabled', 'false');
       }
     });
 
-    loginLink.addEventListener('click', () => {
-      card.classList.remove('show');
-      card.addEventListener('transitionend', () => {
-        window.location.href = 'login.html';
-      }, { once: true });
+    loginBtn.addEventListener('click', () => {
+      window.location.href = 'login.html';
     });
   </script>
 </body>

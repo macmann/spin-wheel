@@ -3,32 +3,77 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Redeem Rewards</title>
-  <link rel="stylesheet" href="../styles.css" />
-  <style>
-    .reward {
-      background: #fff;
-      color: #333;
-      padding: 1rem;
-      margin: 1rem 0;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-      text-align: left;
-    }
-    .reward button {
-      margin-top: 0.5rem;
-    }
-  </style>
+  <meta name="description" content="Redeem Spin Rewards Hub points for curated rewards." />
+  <title>Redeem rewards – Spin Rewards Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="app.js" defer></script>
+  <script src="redemption.js" defer></script>
 </head>
-<body>
-  <main class="container">
-    <h1>Redeem Rewards</h1>
-    <div class="card">
-      <p id="userPoints"></p>
-      <div id="rewards"></div>
-      <button id="backBtn" class="btn">Back</button>
+<body class="page">
+  <header class="site-header" id="top">
+    <div class="container header-content">
+      <a class="logo" href="index.html" aria-label="Spin Rewards Hub home">Spin Rewards Hub</a>
+      <nav aria-label="Primary navigation">
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+        <ul id="primary-nav" class="nav-list">
+          <li><a href="index.html#overview">Overview</a></li>
+          <li><a href="index.html#how-it-works">How it works</a></li>
+          <li><a href="index.html#monetization">Monetisation</a></li>
+          <li><a href="index.html#resources">Resources</a></li>
+          <li><a href="index.html#faq">FAQ</a></li>
+          <li><a href="experience.html">Player experience</a></li>
+          <li><a class="nav-cta" href="account.html">My account</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <div class="container narrow">
+      <section class="card redemption-card">
+        <div class="page-header">
+          <h1>Redeem your rewards</h1>
+          <p>Exchange your Spin Rewards points for curated offers. Codes appear instantly and are stored in your account history.</p>
+        </div>
+        <p id="userPoints" class="experience-balance" aria-live="polite">Points: --</p>
+        <div id="rewards" class="rewards-grid" aria-live="polite"></div>
+        <div class="form-actions">
+          <button id="backBtn" class="btn btn-secondary">Back to experience</button>
+          <a class="btn btn-ghost" href="leaderboard.html">View leaderboard</a>
+        </div>
+      </section>
     </div>
   </main>
-  <script src="redemption.js"></script>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <h2 class="footer-title">Spin Rewards Hub</h2>
+        <p>
+          A content-first approach to promotional spins. We help publishers create meaningful experiences that delight
+          users, protect their data, and respect advertising policies across every channel.
+        </p>
+      </div>
+      <nav aria-label="Footer navigation">
+        <ul class="footer-links">
+          <li><a href="index.html#overview">Programme overview</a></li>
+          <li><a href="index.html#how-it-works">How it works</a></li>
+          <li><a href="index.html#monetization">Monetisation standards</a></li>
+          <li><a href="index.html#resources">Resource library</a></li>
+        </ul>
+      </nav>
+      <div class="footer-meta">
+        <ul>
+          <li><a href="privacy.html">Privacy Notice</a></li>
+          <li><a href="terms.html">Terms of Service</a></li>
+          <li><a href="mailto:compliance@spinrewardshub.com">Report an issue</a></li>
+        </ul>
+        <p class="copyright">© <span id="year">2024</span> Spin Rewards Hub. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>
